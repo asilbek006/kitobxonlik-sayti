@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Kitobxon</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <h4>📚 Kitobxon</h4>
+        <small>Admin Panel</small>
+      </div>
+      <ul class="sidebar-menu">
+        <li><a href="#" class="active" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="#" onclick="showSection('books')"><i class="fas fa-book"></i> Kitoblar</a></li>
+        <li><a href="#" onclick="showSection('pending')"><i class="fas fa-clock"></i> Kutayotgan kitoblar</a></li>
+        <li><a href="#" onclick="showSection('users')"><i class="fas fa-users"></i> Foydalanuvchilar</a></li>
+        <li><a href="#" onclick="showSection('reviews')"><i class="fas fa-comments"></i> Sharhlar</a></li>
+        <li><hr style="border-color: rgba(255,255,255,0.1); margin: 10px 20px;"></li>
+        <li><a href="index.html"><i class="fas fa-home"></i> Saytga qaytish</a></li>
+        <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Chiqish</a></li>
+        <li><hr style="border-color: rgba(255,255,255,0.1); margin: 10px 20px;"></li>
+        <li><a href="#" onclick="resetData()" style="color: #e74c3c;"><i class="fas fa-sync-alt"></i> Ma'lumotlarni tiklash</a></li>
+      </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-content">
+      <!-- DASHBOARD -->
+      <div id="sec-dashboard">
+        <div class="admin-topbar">
+          <h2><i class="fas fa-tachometer-alt me-2 text-primary"></i> Dashboard</h2>
+          <span class="text-muted" id="adminGreeting"></span>
+        </div>
+        <div class="row mb-4">
+          <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="stat-number" id="statTotalBooks">0</div>
+                  <div class="stat-label">Jami kitoblar</div>
+                </div>
+                <div class="stat-icon orange"><i class="fas fa-book"></i></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="stat-number" id="statTotalUsers">0</div>
+                  <div class="stat-label">Foydalanuvchilar</div>
+                </div>
+                <div class="stat-icon green"><i class="fas fa-users"></i></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="stat-number" id="statTotalReviews">0</div>
+                  <div class="stat-label">Sharhlar</div>
+                </div>
+                <div class="stat-icon blue"><i class="fas fa-comments"></i></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="stat-number" id="statPendingBooks">0</div>
+                  <div class="stat-label">Kutayotgan</div>
+                </div>
+                <div class="stat-icon purple"><i class="fas fa-clock"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-8 mb-4">
+            <div class="form-card">
+              <h5 class="mb-3"><i class="fas fa-star text-warning me-2"></i> Eng mashhur kitoblar</h5>
+              <div id="topBooks"></div>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-4">
+            <div class="form-card">
+              <h5 class="mb-3"><i class="fas fa-clock text-primary me-2"></i> So'nggi sharhlar</h5>
+              <div id="recentReviews"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOOKS SECTION -->
+      <div id="sec-books" style="display: none;">
+        <div class="admin-topbar">
+          <h2><i class="fas fa-book me-2 text-primary"></i> Barcha kitoblar</h2>
+        </div>
+        <div class="admin-table">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Rasm</th>
+                <th>Nomi</th>
+                <th>Muallif</th>
+                <th>Kategoriya</th>
+                <th>Holat</th>
+                <th>Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="booksTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PENDING SECTION -->
+      <div id="sec-pending" style="display: none;">
+        <div class="admin-topbar">
+          <h2><i class="fas fa-clock me-2 text-warning"></i> Kutayotgan kitoblar</h2>
+        </div>
+        <div class="admin-table">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nomi</th>
+                <th>Muallif</th>
+                <th>Qo'shgan</th>
+                <th>Sana</th>
+                <th>Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="pendingTableBody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="noPending" style="display: none;">
+          <i class="fas fa-check-circle text-success"></i>
+          <h4>Barcha kitoblar tasdiqlangan!</h4>
+        </div>
+      </div>
+
+      <!-- USERS SECTION -->
+      <div id="sec-users" style="display: none;">
+        <div class="admin-topbar">
+          <h2><i class="fas fa-users me-2 text-primary"></i> Foydalanuvchilar</h2>
+        </div>
+        <div class="admin-table">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Ism</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Roli</th>
+                <th>Amallar</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REVIEWS SECTION -->
+      <div id="sec-reviews" style="display: none;">
+        <div class="admin-topbar">
+          <h2><i class="fas fa-comments me-2 text-primary"></i> Barcha sharhlar</h2>
+        </div>
+        <div id="reviewsList"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    initApp();
+
+    if (!appState.currentUser || appState.currentUser.role !== 'admin') {
+      window.location.href = 'login.html';
+    } else {
+      // Dashboard stats
+      document.getElementById('adminGreeting').textContent = `Xush kelibsiz, ${appState.currentUser.fullname}`;
+      document.getElementById('statTotalBooks').textContent = appState.books.length;
+      document.getElementById('statTotalUsers').textContent = appState.users.length;
+      document.getElementById('statTotalReviews').textContent = appState.reviews.length;
+      document.getElementById('statPendingBooks').textContent = appState.books.filter(b => b.status === 'pending').length;
+
+      // Top books
+      const topBooks = [...appState.books]
+        .filter(b => b.status === 'approved')
+        .sort((a, b) => parseFloat(getBookRating(b.id).avg) - parseFloat(getBookRating(a.id).avg))
+        .slice(0, 5);
+      document.getElementById('topBooks').innerHTML = topBooks.map((b, i) => {
+        const rating = getBookRating(b.id);
+        return `
+          <div class="d-flex align-items-center p-2 border-bottom">
+            <span class="fw-bold me-3 text-muted">${i + 1}</span>
+            <img src="${b.image}" alt="" style="width: 40px; height: 55px; object-fit: cover; border-radius: 4px;" onerror="this.src='https://via.placeholder.com/40x55'">
+            <div class="ms-3 flex-grow-1">
+              <div class="fw-bold" style="font-size: 0.9rem;">${b.title}</div>
+              <small class="text-muted">${getAuthor(b.author_id).fullname}</small>
+            </div>
+            <div class="text-end">
+              <span class="text-warning"><i class="fas fa-star"></i> ${rating.avg}</span>
+              <br><small class="text-muted">${rating.count} baho</small>
+            </div>
+          </div>`;
+      }).join('');
+
+      // Recent reviews
+      const recentReviews = [...appState.reviews].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+      document.getElementById('recentReviews').innerHTML = recentReviews.map(r => {
+        const user = appState.users.find(u => u.id === r.user_id) || { fullname: "Noma'lum" };
+        const book = appState.books.find(b => b.id === r.book_id) || { title: "Noma'lum" };
+        return `
+          <div class="py-2 border-bottom">
+            <div class="d-flex justify-content-between">
+              <strong style="font-size: 0.85rem;">${user.fullname}</strong>
+              <span class="text-warning" style="font-size: 0.8rem;">${getStarsHTML(r.stars)}</span>
+            </div>
+            <small class="text-muted">${book.title}</small>
+            <p class="mb-0 mt-1" style="font-size: 0.8rem;">${r.comment.substring(0, 60)}...</p>
+          </div>`;
+      }).join('');
+
+      // Section renderer
+      function showSection(name) {
+        document.querySelectorAll('[id^="sec-"]').forEach(el => el.style.display = 'none');
+        document.getElementById('sec-' + name).style.display = 'block';
+        document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+        event.target.closest('a').classList.add('active');
+
+        if (name === 'books') renderBooksTable();
+        if (name === 'pending') renderPendingTable();
+        if (name === 'users') renderUsersTable();
+        if (name === 'reviews') renderReviewsList();
+      }
+
+      function renderBooksTable() {
+        document.getElementById('booksTableBody').innerHTML = appState.books.map((b, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td><img src="${b.image}" style="width: 35px; height: 50px; object-fit: cover; border-radius: 4px;" onerror="this.src='https://via.placeholder.com/35x50'"></td>
+            <td><strong>${b.title}</strong></td>
+            <td>${getAuthor(b.author_id).fullname}</td>
+            <td>${t('cat_' + b.category_id) || getCategory(b.category_id).name}</td>
+            <td><span class="badge ${b.status === 'approved' ? 'bg-success' : 'bg-warning text-dark'}">${b.status === 'approved' ? t('approved') : t('pending')}</span></td>
+            <td>
+              <button class="btn btn-sm btn-danger-custom" onclick="if(confirm('${t('confirm_delete')}')){deleteBook(${b.id}); renderBooksTable();}"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>`).join('');
+      }
+
+      function renderPendingTable() {
+        const pending = appState.books.filter(b => b.status === 'pending');
+        if (pending.length === 0) {
+          document.getElementById('pendingTableBody').innerHTML = '';
+          document.getElementById('noPending').style.display = 'block';
+          return;
+        }
+        document.getElementById('noPending').style.display = 'none';
+        document.getElementById('pendingTableBody').innerHTML = pending.map((b, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td><strong>${b.title}</strong></td>
+            <td>${getAuthor(b.author_id).fullname}</td>
+            <td>${b.created_by}</td>
+            <td>${formatDate(b.created_at)}</td>
+            <td>
+              <button class="btn btn-sm btn-success-custom me-1" onclick="approveBook(${b.id}); renderPendingTable();"><i class="fas fa-check"></i> ${t('approve')}</button>
+              <button class="btn btn-sm btn-danger-custom" onclick="if(confirm('${t('confirm_delete')}')){deleteBook(${b.id}); renderPendingTable();}"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>`).join('');
+      }
+
+      function renderUsersTable() {
+        document.getElementById('usersTableBody').innerHTML = appState.users.map((u, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td><strong>${u.fullname}</strong></td>
+            <td>@${u.username}</td>
+            <td>${u.email}</td>
+            <td><span class="badge-role ${u.role}">${u.role === 'admin' ? 'Admin' : 'Foydalanuvchi'}</span></td>
+            <td>
+              ${u.id !== appState.currentUser.id ? `<button class="btn btn-sm btn-danger-custom" onclick="if(confirm('${t('confirm_delete')}')){deleteUser(${u.id}); renderUsersTable();}"><i class="fas fa-trash"></i></button>` : '<span class="text-muted" style="font-size:0.8rem;">Siz</span>'}
+            </td>
+          </tr>`).join('');
+      }
+
+      function renderReviewsList() {
+        document.getElementById('reviewsList').innerHTML = appState.reviews.map(r => {
+          const user = appState.users.find(u => u.id === r.user_id) || { fullname: "Noma'lum" };
+          const book = appState.books.find(b => b.id === r.book_id) || { title: "Noma'lum" };
+          return `
+            <div class="review-card">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="review-header">
+                  <div class="review-avatar">${getInitials(user.fullname)}</div>
+                  <div class="review-meta">
+                    <h6>${user.fullname} <small class="text-muted">@${user.username || ''}</small></h6>
+                    <small class="text-muted">${formatDate(r.created_at)}</small>
+                  </div>
+                </div>
+                <div class="review-stars">${getStarsHTML(r.stars)}</div>
+              </div>
+              <p class="mt-2 mb-1"><strong><a href="book-detail.html?id=${book.id}">${book.title}</a></strong></p>
+              <p class="review-text">${r.comment}</p>
+              <button class="btn btn-sm btn-danger-custom" onclick="if(confirm('${t('confirm_delete')}')){deleteReview(${r.id}); renderReviewsList();}"><i class="fas fa-trash me-1"></i> ${t('delete')}</button>
+            </div>`;
+        }).join('');
+      }
+    }
+  </script>
+</body>
+</html>
