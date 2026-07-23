@@ -1024,3 +1024,229 @@ function formatDate(dateStr) {
 function getInitials(name) {
   return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2);
 }
+
+// ===== SELF-HEALING SYSTEM =====
+var DIAGNOSTICS = {
+  run: function() {
+    var issues = [];
+    var fixed = 0;
+
+    // 1. State structure check
+    if (!appState.books) { appState.books = []; issues.push('books missing → fixed'); fixed++; }
+    if (!appState.reviews) { appState.reviews = []; issues.push('reviews missing → fixed'); fixed++; }
+    if (!appState.ratings) { appState.ratings = []; issues.push('ratings missing → fixed'); fixed++; }
+    if (!appState.users) { appState.users = []; issues.push('users missing → fixed'); fixed++; }
+    if (!appState.favorites) { appState.favorites = []; issues.push('favorites missing → fixed'); fixed++; }
+    if (!appState.nextBookId) appState.nextBookId = BOOKS.length + 1;
+    if (!appState.nextReviewId) appState.nextReviewId = 1;
+    if (!appState.nextUserId) appState.nextUserId = appState.users.length + 1;
+
+    // 2. Default users check
+    for (var di = 0; di < USERS.length; di++) {
+      var found = false;
+      for (var ui = 0; ui < appState.users.length; ui++) {
+        if (appState.users[ui] && appState.users[ui].email === USERS[di].email) { found = true; break; }
+      }
+      if (!found) { appState.users.push(USERS[di]); issues.push('default user "' + USERS[di].fullname + '" missing → added'); fixed++; }
+    }
+
+    // 3. Null users cleanup
+    var beforeCount = appState.users.length;
+    appState.users = appState.users.filter(function(u) { return u && u.id && u.email; });
+    if (appState.users.length < beforeCount) {
+      issues.push((beforeCount - appState.users.length) + ' null/invalid users removed');
+      fixed++;
+    }
+
+    // 4. Duplicate users by email
+    var uniqueEmails = {};
+    var dedupedUsers = [];
+    for (var i = 0; i < appState.users.length; i++) {
+      var e = appState.users[i].email;
+      if (!uniqueEmails[e]) {
+        uniqueEmails[e] = true;
+        dedupedUsers.push(appState.users[i]);
+      }
+    }
+    if (dedupedUsers.length < appState.users.length) {
+      issues.push((appState.users.length - dedupedUsers.length) + ' duplicate users merged');
+      appState.users = dedupedUsers;
+      fixed++;
+    }
+
+    // 5. Book integrity
+    var validBooks = [];
+    for (var bi = 0; bi < appState.books.length; bi++) {
+      var b = appState.books[bi];
+      if (!b || !b.id || !b.title) {
+        issues.push('invalid book at index ' + bi + ' → removed');
+        fixed++;
+        continue;
+      }
+      if (!b.image) b.image = 'https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob';
+      if (!b.status) b.status = 'approved';
+      if (!b.created_at) b.created_at = new Date().toISOString().split('T')[0];
+      if (!b.genre) b.genre = 'Boshqa';
+      if (!b.year) b.year = 2024;
+      if (!b.language) b.language = "O'zbek";
+      if (!b.pages) b.pages = 0;
+      validBooks.push(b);
+    }
+    if (validBooks.length < appState.books.length) {
+      issues.push((appState.books.length - validBooks.length) + ' broken books cleaned');
+      appState.books = validBooks;
+    }
+
+    // 6. nextBookId fix
+    var maxBookId = 0;
+    for (var i = 0; i < appState.books.length; i++) {
+      if (appState.books[i].id > maxBookId) maxBookId = appState.books[i].id;
+    }
+    if (appState.nextBookId <= maxBookId) {
+      appState.nextBookId = maxBookId + 1;
+      issues.push('nextBookId corrected to ' + appState.nextBookId);
+      fixed++;
+    }
+
+    // 7. Reviews with invalid book_id or user_id
+    var validReviews = [];
+    for (var ri = 0; ri < appState.reviews.length; ri++) {
+      var r = appState.reviews[ri];
+      if (!r || !r.id || !r.book_id || !r.user_id) {
+        issues.push('invalid review at index ' + ri + ' → removed');
+        fixed++;
+        continue;
+      }
+      var bookExists = appState.books.some(function(bk) { return bk.id === r.book_id; });
+      var userExists = appState.users.some(function(usr) { return usr.id === r.user_id; });
+      if (!bookExists) {
+        issues.push('review #' + r.id + ' references deleted book → removed');
+        fixed++;
+        continue;
+      }
+      if (!userExists) {
+        issues.push('review #' + r.id + ' references deleted user → kept (anonymous)');
+      }
+      validReviews.push(r);
+    }
+    if (validReviews.length < appState.reviews.length) {
+      appState.reviews = validReviews;
+    }
+
+    // 8. Ratings cleanup
+    var validRatings = [];
+    for (var rati = 0; rati < appState.ratings.length; rati++) {
+      var rt = appState.ratings[rati];
+      if (!rt || !rt.book_id || !rt.user_id) continue;
+      var bkExist = appState.books.some(function(bk) { return bk.id === rt.book_id; });
+      if (bkExist) validRatings.push(rt);
+    }
+    if (validRatings.length < appState.ratings.length) {
+      issues.push((appState.ratings.length - validRatings.length) + ' orphan ratings removed');
+      appState.ratings = validRatings;
+      fixed++;
+    }
+
+    // 9. Favorites cleanup
+    var validFavs = [];
+    for (var fi = 0; fi < appState.favorites.length; fi++) {
+      var fv = appState.favorites[fi];
+      if (!fv || !fv.book_id || !fv.user_id) continue;
+      var fbExist = appState.books.some(function(bk) { return bk.id === fv.book_id; });
+      if (fbExist) validFavs.push(fv);
+    }
+    if (validFavs.length < appState.favorites.length) {
+      issues.push((appState.favorites.length - validFavs.length) + ' orphan favorites removed');
+      appState.favorites = validFavs;
+      fixed++;
+    }
+
+    // 10. Session check
+    var sessionUser = null;
+    try {
+      var sessionRaw = localStorage.getItem('kitobxonUser');
+      if (sessionRaw) sessionUser = JSON.parse(sessionRaw);
+    } catch(e) {
+      localStorage.removeItem('kitobxonUser');
+      issues.push('corrupted session → cleared');
+      fixed++;
+    }
+    if (sessionUser && sessionUser.email) {
+      var sessionValid = appState.users.some(function(u) { return u.email === sessionUser.email; });
+      if (!sessionValid) {
+        appState.users.push(sessionUser);
+        issues.push('session user not in users list → added');
+        fixed++;
+      }
+    }
+
+    // 11. nextReviewId fix
+    var maxReviewId = 0;
+    for (var i = 0; i < appState.reviews.length; i++) {
+      if (appState.reviews[i].id > maxReviewId) maxReviewId = appState.reviews[i].id;
+    }
+    if (!appState.nextReviewId || appState.nextReviewId <= maxReviewId) {
+      appState.nextReviewId = maxReviewId + 1;
+    }
+
+    // 12. nextUserId fix
+    var maxUserId = 0;
+    for (var i = 0; i < appState.users.length; i++) {
+      if (appState.users[i].id > maxUserId) maxUserId = appState.users[i].id;
+    }
+    if (!appState.nextUserId || appState.nextUserId <= maxUserId) {
+      appState.nextUserId = maxUserId + 1;
+    }
+
+    return { issues: issues, fixed: fixed, healthy: issues.length === 0 };
+  },
+
+  autoRepair: function() {
+    var result = this.run();
+    if (result.fixed > 0) {
+      forceSave();
+    }
+    return result;
+  },
+
+  getReport: function() {
+    var r = this.run();
+    var stats = {
+      status: r.healthy ? '✅ Sog\'lom' : '⚠️ ' + r.fixed + ' ta muammo tuzatildi',
+      books: appState.books.length,
+      approvedBooks: getApprovedBooks().length,
+      pendingBooks: appState.books.filter(function(b) { return b.status === 'pending'; }).length,
+      users: appState.users.length,
+      reviews: appState.reviews.length,
+      ratings: appState.ratings.length,
+      favorites: appState.favorites.length,
+      currentUser: appState.currentUser ? appState.currentUser.fullname : 'Yo\'q',
+      localStorageSize: (new Blob([localStorage.getItem('kitobxonApp') || '']).size / 1024).toFixed(1) + ' KB',
+      issues: r.issues,
+      fixed: r.fixed
+    };
+    return stats;
+  },
+
+  nuclearReset: function() {
+    localStorage.removeItem('kitobxonApp');
+    localStorage.removeItem('kitobxonDataVersion');
+    localStorage.removeItem('kitobxonUser');
+    localStorage.removeItem('kitobxonLang');
+    localStorage.removeItem('kitobxonDarkMode');
+    localStorage.removeItem('kitobxonAuthors');
+    location.reload();
+  }
+};
+
+// Auto-run diagnostics on every page load (silent)
+(function() {
+  try {
+    var result = DIAGNOSTICS.autoRepair();
+    if (result.fixed > 0) {
+      console.log('[Kitobxon Self-Heal] ' + result.fixed + ' issues auto-fixed:', result.issues);
+    }
+  } catch(e) {
+    console.error('[Kitobxon Self-Heal] Error:', e);
+  }
+})();

@@ -25,6 +25,7 @@
         <li><a href="#" onclick="showSection('pending')"><i class="fas fa-clock"></i> Kutayotgan kitoblar</a></li>
         <li><a href="#" onclick="showSection('users')"><i class="fas fa-users"></i> Foydalanuvchilar</a></li>
         <li><a href="#" onclick="showSection('reviews')"><i class="fas fa-comments"></i> Sharhlar</a></li>
+        <li><a href="#" onclick="showSection('diagnostics')"><i class="fas fa-heartbeat"></i> Diagnostika</a></li>
         <li><hr style="border-color: rgba(255,255,255,0.1); margin: 10px 20px;"></li>
         <li><a href="index.html"><i class="fas fa-home"></i> Saytga qaytish</a></li>
         <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Chiqish</a></li>
@@ -183,6 +184,15 @@
         </div>
         <div id="reviewsList"></div>
       </div>
+
+      <!-- DIAGNOSTICS SECTION -->
+      <div id="sec-diagnostics" style="display: none;">
+        <div class="admin-topbar">
+          <h2><i class="fas fa-heartbeat me-2 text-primary"></i> Diagnostika</h2>
+          <button class="btn btn-custom" onclick="runDiagnosticsUI()"><i class="fas fa-sync me-2"></i> Tekshirish</button>
+        </div>
+        <div id="diagResults"></div>
+      </div>
     </main>
   </div>
 
@@ -254,6 +264,45 @@
         if (name === 'pending') renderPendingTable();
         if (name === 'users') renderUsersTable();
         if (name === 'reviews') renderReviewsList();
+        if (name === 'diagnostics') runDiagnosticsUI();
+      }
+
+      function runDiagnosticsUI() {
+        var r = DIAGNOSTICS.autoRepair();
+        var report = DIAGNOSTICS.getReport();
+        var html = '<div class="row g-3 mb-4">';
+
+        var cards = [
+          { icon: 'fas fa-heartbeat', color: r.healthy ? '#27ae60' : '#e67e22', label: 'Holat', value: report.status },
+          { icon: 'fas fa-book', color: '#3498db', label: 'Kitoblar (jami)', value: report.books },
+          { icon: 'fas fa-check-circle', color: '#27ae60', label: 'Tasdiqlangan', value: report.approvedBooks },
+          { icon: 'fas fa-clock', color: '#f39c12', label: 'Kutilayotgan', value: report.pendingBooks },
+          { icon: 'fas fa-users', color: '#8e44ad', label: 'Foydalanuvchilar', value: report.users },
+          { icon: 'fas fa-comments', color: '#2980b9', label: 'Sharhlar', value: report.reviews },
+          { icon: 'fas fa-star', color: '#e67e22', label: 'Baholar', value: report.ratings },
+          { icon: 'fas fa-heart', color: '#e74c3c', label: 'Sevimlilar', value: report.favorites },
+          { icon: 'fas fa-database', color: '#7f8c8d', label: 'localStorage', value: report.localStorageSize },
+          { icon: 'fas fa-user', color: '#27ae60', label: 'Siz', value: report.currentUser }
+        ];
+
+        cards.forEach(function(c) {
+          html += '<div class="col-lg-3 col-md-4 col-6"><div class="stat-card"><div class="d-flex align-items-center gap-3"><div class="stat-icon" style="background:' + c.color + ';width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;"><i class="' + c.icon + '"></i></div><div><div style="font-size:1.3rem;font-weight:800;">' + c.value + '</div><div style="font-size:0.8rem;color:#9ca3af;">' + c.label + '</div></div></div></div></div>';
+        });
+        html += '</div>';
+
+        if (report.issues.length > 0) {
+          html += '<div class="form-card"><h5 class="mb-3"><i class="fas fa-wrench text-warning me-2"></i> Tuzatilgan muammolar (' + report.fixed + ')</h5><ul style="list-style:none;padding:0;">';
+          report.issues.forEach(function(issue) {
+            html += '<li class="py-2 border-bottom" style="font-size:0.9rem;"><i class="fas fa-check-circle text-success me-2"></i>' + issue + '</li>';
+          });
+          html += '</ul></div>';
+        } else {
+          html += '<div class="form-card text-center py-4"><i class="fas fa-shield-alt text-success" style="font-size:3rem;margin-bottom:10px;"></i><h5 class="text-success">Hammasi sog\'lom!</h5><p class="text-muted">Hech qanday muammo topilmadi</p></div>';
+        }
+
+        html += '<div class="mt-3"><button class="btn btn-danger-custom me-2" onclick="if(confirm(\'Barcha ma\'lumotlar o\'chiriladi! Davom etasizmi?\")){DIAGNOSTICS.nuclearReset();}"><i class="fas fa-trash me-1"></i> To\'liq reset</button><button class="btn btn-outline-custom" onclick="var s=prompt(\'Tasdiqlash uchun RESET yozing:\');if(s===\'RESET\'){DIAGNOSTICS.nuclearReset();}"><i class="fas fa-exclamation-triangle me-1"></i> Xavfli reset</button></div>';
+
+        document.getElementById('diagResults').innerHTML = html;
       }
 
       function renderBooksTable() {
