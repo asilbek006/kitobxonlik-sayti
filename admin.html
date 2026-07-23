@@ -357,22 +357,27 @@
       }
 
       function renderReviewsList() {
-        document.getElementById('reviewsList').innerHTML = appState.reviews.map(r => {
-          const user = appState.users.find(u => u.id === r.user_id) || { fullname: "Noma'lum" };
-          const book = appState.books.find(b => b.id === r.book_id) || { title: "Noma'lum" };
+        if (appState.reviews.length === 0) {
+          document.getElementById('reviewsList').innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><h4>Hali sharh yo\'q</h4></div>';
+          return;
+        }
+        const sorted = [...appState.reviews].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        document.getElementById('reviewsList').innerHTML = sorted.map(r => {
+          const user = appState.users.find(u => u.id === r.user_id) || { fullname: "Noma'lum", username: "unknown", email: "" };
+          const book = appState.books.find(b => b.id === r.book_id) || { title: "Noma'lum kitob", id: 0 };
           return `
-            <div class="review-card">
+            <div class="review-card mb-3">
               <div class="d-flex justify-content-between align-items-start">
                 <div class="review-header">
                   <div class="review-avatar">${getInitials(user.fullname)}</div>
                   <div class="review-meta">
                     <h6>${user.fullname} <small class="text-muted">@${user.username || ''}</small></h6>
-                    <small class="text-muted">${formatDate(r.created_at)}</small>
+                    <small class="text-muted"><i class="fas fa-envelope me-1"></i>${user.email || 'Noma\'lum'} &middot; <i class="fas fa-calendar me-1"></i>${formatDate(r.created_at)}</small>
                   </div>
                 </div>
                 <div class="review-stars">${getStarsHTML(r.stars)}</div>
               </div>
-              <p class="mt-2 mb-1"><strong><a href="book-detail.html?id=${book.id}">${book.title}</a></strong></p>
+              <p class="mt-2 mb-1"><strong><a href="book-detail.html?id=${book.id}"><i class="fas fa-book me-1"></i>${book.title}</a></strong></p>
               <p class="review-text">${r.comment}</p>
               <button class="btn btn-sm btn-danger-custom" onclick="adminConfirmDelete(function(){deleteReview(${r.id});renderReviewsList();})"><i class="fas fa-trash me-1"></i> ${t('delete')}</button>
             </div>`;

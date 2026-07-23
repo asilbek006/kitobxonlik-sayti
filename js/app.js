@@ -82,6 +82,8 @@ function initApp() {
         if (!appState.nextUserId) appState.nextUserId = appState.users.length + 1;
         localStorage.setItem('kitobxonApp', JSON.stringify(appState));
       }
+    } else {
+      appState.currentUser = null;
     }
   } catch (e) {}
 
@@ -120,6 +122,7 @@ function login(email, password) {
   if (user) {
     appState.currentUser = user;
     localStorage.setItem('kitobxonUser', JSON.stringify(user));
+    forceSave();
     return { success: true, user };
   }
   return { success: false, message: "Email yoki parol noto'g'ri" };
@@ -151,6 +154,7 @@ function register(fullname, username, email, password) {
 function logout() {
   appState.currentUser = null;
   localStorage.removeItem('kitobxonUser');
+  forceSave();
   window.location.href = 'index.html';
 }
 
@@ -327,7 +331,6 @@ function addBook(bookData) {
 
 function deleteBook(bookId) {
   appState.books = appState.books.filter(b => b.id !== bookId);
-  appState.reviews = appState.reviews.filter(r => r.book_id !== bookId);
   appState.ratings = appState.ratings.filter(r => r.book_id !== bookId);
   forceSave();
   showToast("Kitob o'chirildi", 'info');
@@ -345,7 +348,6 @@ function approveBook(bookId) {
 // ===== USER MANAGEMENT =====
 function deleteUser(userId) {
   appState.users = appState.users.filter(u => u.id !== userId);
-  appState.reviews = appState.reviews.filter(r => r.user_id !== userId);
   appState.ratings = appState.ratings.filter(r => r.user_id !== userId);
   forceSave();
   showToast("Foydalanuvchi o'chirildi", 'info');
@@ -1120,9 +1122,7 @@ var DIAGNOSTICS = {
       var bookExists = appState.books.some(function(bk) { return bk.id === r.book_id; });
       var userExists = appState.users.some(function(usr) { return usr.id === r.user_id; });
       if (!bookExists) {
-        issues.push('review #' + r.id + ' references deleted book → removed');
-        fixed++;
-        continue;
+        issues.push('review #' + r.id + ' references deleted book → kept');
       }
       if (!userExists) {
         issues.push('review #' + r.id + ' references deleted user → kept (anonymous)');
