@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil - Kitobxon</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">📚 Kitobxon</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+        <i class="fas fa-bars" style="color: white;"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navContent">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html"><i class="fas fa-home"></i> Bosh sahifa</a></li>
+          <li class="nav-item"><a class="nav-link" href="books.html">📚 Kitoblar</a></li>
+          <li class="nav-item"><a class="nav-link" href="categories.html">🗂 Kategoriyalar</a></li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item"><button class="nav-link" onclick="toggleDarkMode()" id="darkModeBtn">🌙 Dark</button></li>
+          <li class="nav-item"><button class="nav-link" onclick="resetData()" title="Ma'lumotlarni yangilash">🔄 Yangilash</button></li>
+          <li class="nav-item user-menu" id="userNav" style="display: none;">
+            <a class="nav-link" href="add-book.html" id="addBookLink"><i class="fas fa-plus-circle"></i> Kitob qo'shish</a>
+            <a class="nav-link" href="admin.html" id="adminLink" style="display:none;"><i class="fas fa-cog"></i> Admin</a>
+            <div class="dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                <div class="user-avatar" id="userAvatarNav">A</div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><span class="dropdown-item-text fw-bold" id="userDisplayName">User</span></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user me-2"></i> Profil</a></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i> Chiqish</a></li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <section class="profile-hero" id="profileHero">
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ul class="nav profile-tabs mb-4" id="profileTabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" data-tab="books" onclick="switchTab('books')"><i class="fas fa-book me-2"></i> Qo'shgan kitoblari</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-tab="reviews" onclick="switchTab('reviews')"><i class="fas fa-comments me-2"></i> Sharhlari</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-tab="favorites" onclick="switchTab('favorites')"><i class="fas fa-heart me-2"></i> Sevimlilari</button>
+        </li>
+      </ul>
+
+      <div id="tabBooks" class="tab-content">
+        <div class="row" id="userBooks"></div>
+      </div>
+      <div id="tabReviews" class="tab-content" style="display: none;">
+        <div id="userReviews"></div>
+      </div>
+      <div id="tabFavorites" class="tab-content" style="display: none;">
+        <div class="row" id="userFavorites"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2024 Kitobxon. Barcha huquqlar himoyalangan.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    try { initApp(); } catch(e) { console.error('initApp:', e); }
+    window.profileConfirmDelete = function(cb) { if (confirm(t('confirm_delete'))) cb(); };
+    if (!appState.currentUser) {
+      window.location.href = 'login.html';
+    } else {
+      const user = appState.currentUser;
+      const userBooks = appState.books.filter(b => b.created_by === user.username);
+      const userReviews = appState.reviews.filter(r => r.user_id === user.id);
+      const userFavs = appState.favorites.filter(f => f.user_id === user.id);
+
+      document.getElementById('profileHero').innerHTML = `
+        <div class="container">
+          <div class="profile-avatar">${getInitials(user.fullname)}</div>
+          <h2>${user.fullname}</h2>
+          <p style="opacity: 0.8;">@${user.username} &bull; ${user.email}</p>
+          ${user.role === 'admin' ? '<span class="badge bg-warning text-dark"><i class="fas fa-crown me-1"></i> Admin</span>' : '<span class="badge bg-light text-dark"><i class="fas fa-user me-1"></i> Foydalanuvchi</span>'}
+          <div class="profile-stats">
+            <div class="profile-stat"><div class="num">${userBooks.length}</div><div class="lbl">Kitoblar</div></div>
+            <div class="profile-stat"><div class="num">${userReviews.length}</div><div class="lbl">Sharhlar</div></div>
+            <div class="profile-stat"><div class="num">${userFavs.length}</div><div class="lbl">Sevimlilar</div></div>
+          </div>
+        </div>`;
+
+      // User books
+      if (userBooks.length === 0) {
+        document.getElementById('userBooks').innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-book"></i>
+            <h4>Hozircha kitob yo'q</h4>
+            <a href="add-book.html" class="btn btn-custom mt-2"><i class="fas fa-plus me-2"></i> Kitob qo'shish</a>
+          </div>`;
+      } else {
+        document.getElementById('userBooks').innerHTML = userBooks.map(b => renderBookCard(b)).join('');
+      }
+
+      // User reviews
+      if (userReviews.length === 0) {
+        document.getElementById('userReviews').innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-comments"></i>
+            <h4>Hozircha sharh yo'q</h4>
+            <a href="books.html" class="btn btn-custom mt-2"><i class="fas fa-book me-2"></i> Kitoblarni ko'rish</a>
+          </div>`;
+      } else {
+        document.getElementById('userReviews').innerHTML = userReviews.map(r => {
+          const book = appState.books.find(b => b.id === r.book_id) || { title: "Noma'lum", id: 0 };
+          return `
+            <div class="review-card">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <a href="book-detail.html?id=${book.id}" class="fw-bold text-primary">${book.title}</a>
+                  <div class="review-stars my-1">${getStarsHTML(r.stars)}</div>
+                  <p class="review-text">${r.comment}</p>
+                  <small class="text-muted">${formatDate(r.created_at)}</small>
+                </div>
+                <button class="btn btn-sm btn-danger-custom" onclick="profileConfirmDelete(function(){deleteReview(${r.id});forceSave();location.reload();})">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      // Favorites
+      if (userFavs.length === 0) {
+        document.getElementById('userFavorites').innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-heart"></i>
+            <h4>Sevimli kitoblar yo'q</h4>
+            <a href="books.html" class="btn btn-custom mt-2"><i class="fas fa-book me-2"></i> Kitoblarni ko'rish</a>
+          </div>`;
+      } else {
+        const favBooks = userFavs.map(f => appState.books.find(b => b.id === f.book_id)).filter(Boolean);
+        document.getElementById('userFavorites').innerHTML = favBooks.map(b => renderBookCard(b)).join('');
+      }
+
+      function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.profile-tabs .nav-link').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).style.display = 'block';
+        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>

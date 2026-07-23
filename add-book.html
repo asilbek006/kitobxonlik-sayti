@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitob qo'shish - Kitobxon</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">📚 Kitobxon</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+        <i class="fas fa-bars" style="color: white;"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navContent">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html" data-t="nav_home"><i class="fas fa-home"></i> Bosh sahifa</a></li>
+          <li class="nav-item"><a class="nav-link" href="books.html" data-t="nav_books">📚 Kitoblar</a></li>
+          <li class="nav-item"><a class="nav-link" href="categories.html" data-t="nav_categories">🗂 Kategoriyalar</a></li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item"><div class="lang-switcher"><button class="lang-btn active" data-lang="uz" onclick="switchLang('uz')">🇺🇿 UZ</button><button class="lang-btn" data-lang="ru" onclick="switchLang('ru')">🇷🇺 RU</button><button class="lang-btn" data-lang="en" onclick="switchLang('en')">🇬🇧 EN</button></div></li>
+          <li class="nav-item"><button class="nav-link" onclick="toggleDarkMode()" id="darkModeBtn">🌙 Dark</button></li>
+          <li class="nav-item"><button class="nav-link" onclick="resetData()">🔄 Yangilash</button></li>
+          <li class="nav-item" id="authNav" style="display: flex; gap: 8px;">
+            <a class="btn btn-login" href="login.html"><i class="fas fa-sign-in-alt"></i> <span data-t="nav_login">Kirish</span></a>
+          </li>
+          <li class="nav-item user-menu" id="userNav" style="display: none;">
+            <a class="nav-link" href="add-book.html" id="addBookLink"><i class="fas fa-plus-circle"></i> <span data-t="nav_add_book">Kitob qo'shish</span></a>
+            <a class="nav-link" href="admin.html" id="adminLink" style="display:none;"><i class="fas fa-cog"></i> <span data-t="nav_admin">Admin</span></a>
+            <div class="dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><div class="user-avatar" id="userAvatarNav">A</div></a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><span class="dropdown-item-text fw-bold" id="userDisplayName">User</span></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user me-2"></i> <span data-t="nav_profile">Profil</span></a></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i> <span data-t="nav_logout">Chiqish</span></a></li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <section class="add-book-page">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="form-card">
+            <h3 id="pageTitle"><i class="fas fa-plus-circle text-primary me-2"></i> <span data-t="add_book_title">Yangi kitob qo'shish</span></h3>
+            <p class="text-muted mb-4" data-t="add_book_desc">Majburiy maydonlarni to'ldiring, qolganlarni o'tkazib yuborishingiz mumkin.</p>
+
+            <div id="addBookSuccess" class="alert alert-success" style="display: none;"></div>
+
+            <h5 class="mb-3" style="color: #e67e22;"><i class="fas fa-book me-2"></i><span data-t="basic_info">Asosiy ma'lumotlar</span></h5>
+
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label class="form-label"><span data-t="book_name">Kitob nomi</span> *</label>
+                <input type="text" class="form-control" id="bookTitle" placeholder="Kitob nomini kiriting">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label" data-t="book_image">Rasm URL</label>
+                <input type="text" class="form-control" id="bookImage" placeholder="https://...">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" data-t="book_image_file">Rasm fayl yuklash (ixtiyoriy)</label>
+              <input type="file" class="form-control" id="bookImageFile" accept="image/*" onchange="previewImage(event)">
+              <div id="imagePreview" class="mt-2" style="display:none;">
+                <img id="previewImg" style="max-height:120px; border-radius:8px; border:2px solid #e67e22;">
+                <button type="button" class="btn btn-sm btn-danger ms-2" onclick="clearImagePreview()"><i class="fas fa-times"></i></button>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label"><span data-t="description">Tavsif</span> *</label>
+              <textarea class="form-control" id="bookDescription" rows="3"></textarea>
+            </div>
+
+            <h5 class="mb-3 mt-4" style="color: #e67e22;"><i class="fas fa-user me-2"></i><span data-t="author_kat">Muallif va kategoriya</span></h5>
+
+            <div class="row">
+              <div class="col-md-5 mb-3">
+                <label class="form-label"><span data-t="author">Muallif</span> *</label>
+                <select class="form-select" id="bookAuthor"><option value="">Tanlang</option></select>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label" data-t="new_author">Yangi muallif</label>
+                <input type="text" class="form-control" id="bookNewAuthor" placeholder="Muallif ismi">
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label" data-t="country">Mamlakat</label>
+                <input type="text" class="form-control" id="bookAuthorCountry" value="O'zbekiston">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label"><span data-t="category">Kategoriya</span> *</label>
+                <select class="form-select" id="bookCategory"><option value="">Tanlang</option></select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label" data-t="genre">Janr</label>
+                <input type="text" class="form-control" id="bookGenre">
+              </div>
+            </div>
+
+            <h5 class="mb-3 mt-4" style="color: #e67e22;"><i class="fas fa-info-circle me-2"></i><span data-t="extra_info">Qo'shimcha ma'lumotlar</span></h5>
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label class="form-label" data-t="publish_year">Nashr yili</label>
+                <input type="number" class="form-control" id="bookYear" placeholder="2024">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label" data-t="pages_count">Sahifalar</label>
+                <input type="number" class="form-control" id="bookPages" placeholder="300">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">ISBN</label>
+                <input type="text" class="form-control" id="bookIsbn" placeholder="978-...">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label" data-t="publisher">Nashriyot</label>
+                <input type="text" class="form-control" id="bookPublisher">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label" data-t="language">Til</label>
+                <select class="form-select" id="bookLanguage">
+                  <option value="O'zbek">O'zbek</option>
+                  <option value="Rus">Rus</option>
+                  <option value="Ingliz">Ingliz</option>
+                </select>
+              </div>
+            </div>
+
+            <h5 class="mb-3 mt-4" style="color: #e67e22;"><i class="fas fa-file-pdf me-2"></i><span data-t="files_links">Fayl va havolalar</span></h5>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label" data-t="pdf_url">PDF fayl URL</label>
+                <input type="text" class="form-control" id="bookPdfUrl" placeholder="https://...">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label" data-t="source_url">Manba URL</label>
+                <input type="text" class="form-control" id="bookUrl" placeholder="https://...">
+              </div>
+            </div>
+
+            <div class="d-flex gap-3 mt-4">
+              <button class="btn btn-custom btn-lg flex-grow-1" onclick="handleAddBook()">
+                <i class="fas fa-save me-2"></i> <span data-t="save_book">Kitobni saqlash</span>
+              </button>
+              <a href="index.html" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-times me-2"></i> <span data-t="skip">O'tkazib yuborish</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2024 Kitobxon. <span data-t="footer_right">Barcha huquqlar himoyalangan.</span></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    try { initApp(); } catch(e) { console.error('initApp:', e); }
+    applyTranslations();
+    if (!appState.currentUser) { window.location.href = 'login.html'; }
+    else {
+      const authorSel = document.getElementById('bookAuthor');
+      AUTHORS.forEach(a => { authorSel.innerHTML += '<option value="' + a.id + '">' + a.fullname + '</option>'; });
+      const catSel = document.getElementById('bookCategory');
+      CATEGORIES.forEach(c => { catSel.innerHTML += '<option value="' + c.id + '">' + t('cat_' + c.id) + '</option>'; });
+
+      let uploadedImageData = null;
+      const editId = getUrlParam('edit');
+      let editingBook = null;
+
+      if (editId) {
+        editingBook = appState.books.find(b => b.id === parseInt(editId));
+        if (editingBook) {
+          document.getElementById('pageTitle').innerHTML = '<i class="fas fa-edit text-primary me-2"></i> <span data-t="edit_book">Kitobni tahrirlash</span>';
+          applyTranslations();
+          document.getElementById('bookTitle').value = editingBook.title;
+          document.getElementById('bookDescription').value = editingBook.description;
+          document.getElementById('bookImage').value = editingBook.image || '';
+          document.getElementById('bookAuthor').value = editingBook.author_id;
+          document.getElementById('bookCategory').value = editingBook.category_id;
+          document.getElementById('bookGenre').value = editingBook.genre || '';
+          document.getElementById('bookYear').value = editingBook.year || '';
+          document.getElementById('bookPages').value = editingBook.pages || '';
+          document.getElementById('bookPublisher').value = editingBook.publisher || '';
+          document.getElementById('bookLanguage').value = editingBook.language || "O'zbek";
+          document.getElementById('bookIsbn').value = editingBook.isbn || '';
+          document.getElementById('bookPdfUrl').value = editingBook.pdf_url || '';
+          document.getElementById('bookUrl').value = editingBook.book_url || '';
+        }
+      }
+
+      function previewImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) { showToast("Fayl hajmi 2MB dan kichik!", 'error'); event.target.value = ''; return; }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          uploadedImageData = e.target.result;
+          document.getElementById('previewImg').src = uploadedImageData;
+          document.getElementById('imagePreview').style.display = 'block';
+          document.getElementById('bookImage').value = '';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function clearImagePreview() {
+        uploadedImageData = null;
+        document.getElementById('previewImg').src = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('bookImageFile').value = '';
+      }
+
+      function handleAddBook() {
+        const title = document.getElementById('bookTitle').value.trim();
+        const description = document.getElementById('bookDescription').value.trim();
+        const authorId = document.getElementById('bookAuthor').value;
+        const newAuthorName = document.getElementById('bookNewAuthor').value.trim();
+        const categoryId = document.getElementById('bookCategory').value;
+
+        if (!title || !description || !categoryId) { showToast(t('fields_required'), 'error'); return; }
+
+        let finalAuthorId = parseInt(authorId);
+        if (!finalAuthorId && newAuthorName) {
+          const newAuthor = { id: AUTHORS.length + 1, fullname: newAuthorName, country: document.getElementById('bookAuthorCountry').value.trim() || "O'zbekiston" };
+          AUTHORS.push(newAuthor);
+          finalAuthorId = newAuthor.id;
+          localStorage.setItem('kitobxonAuthors', JSON.stringify(AUTHORS));
+        }
+        if (!finalAuthorId) { showToast(t('select_author_error'), 'error'); return; }
+
+        const catColors = ['#e74c3c','#16a085','#8e44ad','#2980b9','#7f8c8d','#27ae60','#2c3e50','#c0392b','#1abc9c','#34495e','#d35400','#9b59b6'];
+        const catId = parseInt(categoryId);
+        const catColor = catColors[catId % catColors.length] || '#e67e22';
+        const shortTitle = title.substring(0, 15);
+        const imageData = uploadedImageData || document.getElementById('bookImage').value.trim() || 'https://placehold.co/400x600/' + catColor.replace('#','') + '/ffffff?text=' + encodeURIComponent(shortTitle);
+
+        const bookData = {
+          title, description, image: imageData, author_id: finalAuthorId, category_id: catId,
+          genre: document.getElementById('bookGenre').value.trim() || "Boshqa",
+          year: parseInt(document.getElementById('bookYear').value) || 2024,
+          publisher: document.getElementById('bookPublisher').value.trim() || "Noma'lum",
+          language: document.getElementById('bookLanguage').value,
+          isbn: document.getElementById('bookIsbn').value.trim() || null,
+          pages: parseInt(document.getElementById('bookPages').value) || 0,
+          pdf_url: document.getElementById('bookPdfUrl').value.trim() || null,
+          book_url: document.getElementById('bookUrl').value.trim() || null
+        };
+
+        if (editingBook) {
+          Object.assign(editingBook, bookData);
+          forceSave();
+          showToast(t('saved'), 'success');
+          window.location.href = 'book-detail.html?id=' + editingBook.id;
+        } else {
+          addBook(bookData);
+          const successEl = document.getElementById('addBookSuccess');
+          successEl.textContent = appState.currentUser.role === 'admin' ? t('book_approved') : t('book_pending');
+          successEl.style.display = 'block';
+          showToast(t('book_added'), 'success');
+          document.getElementById('bookTitle').value = '';
+          document.getElementById('bookDescription').value = '';
+          document.getElementById('bookImage').value = '';
+          document.getElementById('bookGenre').value = '';
+          document.getElementById('bookYear').value = '';
+          document.getElementById('bookPages').value = '';
+          document.getElementById('bookPublisher').value = '';
+          document.getElementById('bookIsbn').value = '';
+          document.getElementById('bookPdfUrl').value = '';
+          document.getElementById('bookUrl').value = '';
+          document.getElementById('bookNewAuthor').value = '';
+          clearImagePreview();
+        }
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tizimga kirish - Kitobxon</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <style>
+    .toggle-pass{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;z-index:5;background:none;border:none;padding:0}
+    .toggle-pass:hover{color:var(--primary,#4361ee)}
+  </style>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="text-center mb-3">
+        <a href="index.html" style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">
+          📚 Kitobxon
+        </a>
+      </div>
+      <h2>Tizimga kirish</h2>
+      <p class="auth-subtitle">Hisobingizga kiring va kitoblarni baholang</p>
+      <div id="msg" class="alert" style="display: none;"></div>
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+          <input type="email" class="form-control" id="loginEmail" placeholder="email@misol.uz">
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Parol</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fas fa-lock"></i></span>
+          <input type="password" class="form-control" id="loginPassword" placeholder="Parolni kiriting" style="padding-right:42px">
+          <button type="button" class="toggle-pass" onclick="togglePass('loginPassword',this)"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary mt-2 w-100" onclick="doLogin()">
+        <i class="fas fa-sign-in-alt me-2"></i> Kirish
+      </button>
+      <p class="auth-link mt-3">Hisobingiz yo'qmi? <a href="register.html">Ro'yxatdan o'ting</a></p>
+      <hr>
+      <div class="text-center">
+        <small class="text-muted">Demo: <strong>afruza@gmail.com</strong> / <strong>admin123</strong></small>
+      </div>
+      <p class="text-center mt-2"><a href="index.html" style="color:#999;font-size:0.85rem">← Bosh sahifaga qaytish</a></p>
+    </div>
+  </div>
+  <script>
+    var DEFAULT_USERS = [
+      {id:1,fullname:"Afruza",username:"afruza",email:"afruza@gmail.com",password:"admin123",role:"admin",avatar:null},
+      {id:2,fullname:"Aziz Karimov",username:"aziz",email:"aziz@gmail.com",password:"123456",role:"user",avatar:null},
+      {id:3,fullname:"Sardor Rakhimov",username:"sardor",email:"sardor@gmail.com",password:"123456",role:"user",avatar:null}
+    ];
+
+    function togglePass(id,btn){
+      var i=document.getElementById(id),ic=btn.querySelector('i');
+      if(i.type==='password'){i.type='text';ic.classList.replace('fa-eye','fa-eye-slash');}
+      else{i.type='password';ic.classList.replace('fa-eye-slash','fa-eye');}
+    }
+
+    function showMsg(t,c){
+      var e=document.getElementById('msg');
+      e.innerHTML=t;
+      e.className='alert alert-'+c;
+      e.style.display='block';
+    }
+
+    function getAllUsers(){
+      var users=DEFAULT_USERS.slice();
+      try{
+        var raw=localStorage.getItem('kitobxonApp');
+        if(raw){
+          var s=JSON.parse(raw);
+          if(s&&s.users&&Array.isArray(s.users)){
+            var map={};
+            for(var i=0;i<s.users.length;i++) map[s.users[i].email]=s.users[i];
+            for(var i=0;i<users.length;i++) map[users[i].email]=users[i];
+            users=[];
+            for(var k in map) users.push(map[k]);
+          }
+        }
+      }catch(e){}
+      return users;
+    }
+
+    function doLogin(){
+      var email=document.getElementById('loginEmail').value.trim().toLowerCase();
+      var pw=document.getElementById('loginPassword').value;
+
+      if(!email){showMsg('Emailni kiriting!','danger');return;}
+      if(!pw){showMsg('Parolni kiriting!','danger');return;}
+
+      var all=getAllUsers();
+
+      var user=null;
+      for(var i=0;i<all.length;i++){
+        if(all[i].email===email&&all[i].password===pw){
+          user=all[i];break;
+        }
+      }
+
+      if(user){
+        try{
+          localStorage.setItem('kitobxonUser',JSON.stringify(user));
+        }catch(e){
+          showMsg('Saqlashda xatolik!','danger');return;
+        }
+        showMsg('Muvaffaqiyatli kirdingiz! Yo\'naltirilmoqda...','success');
+        setTimeout(function(){window.location.href='index.html';},600);
+      }else{
+        var found=false;
+        for(var i=0;i<all.length;i++){if(all[i].email===email){found=true;break;}}
+        if(found){
+          showMsg('Parol noto\'g\'ri!','danger');
+        }else{
+          showMsg('Bu email topilmadi! <a href="register.html" style="color:#fff;text-decoration:underline;font-weight:700">Ro\'yxatdan o\'ting →</a>','danger');
+        }
+      }
+    }
+
+    document.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+  </script>
+</body>
+</html>

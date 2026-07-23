@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitobxon - Kitoblar Baho va Sharh Platformasi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">📚 Kitobxon</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+        <i class="fas fa-bars" style="color: white;"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navContent">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link active" href="index.html" data-t="nav_home"><i class="fas fa-home"></i> Bosh sahifa</a></li>
+          <li class="nav-item"><a class="nav-link" href="books.html" data-t="nav_books">📚 Kitoblar</a></li>
+          <li class="nav-item"><a class="nav-link" href="categories.html" data-t="nav_categories">🗂 Kategoriyalar</a></li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <div class="lang-switcher">
+              <button class="lang-btn active" data-lang="uz" onclick="switchLang('uz')">🇺🇿 UZ</button>
+              <button class="lang-btn" data-lang="ru" onclick="switchLang('ru')">🇷🇺 RU</button>
+              <button class="lang-btn" data-lang="en" onclick="switchLang('en')">🇬🇧 EN</button>
+            </div>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" onclick="toggleDarkMode()" title="Dark Mode" id="darkModeBtn">
+              🌙 Dark
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" onclick="resetData()" data-t-title="admin_reset">
+              🔄 Yangilash
+            </button>
+          </li>
+          <li class="nav-item" id="authNav" style="display: flex; gap: 8px;">
+            <a class="btn btn-login" href="login.html"><i class="fas fa-sign-in-alt"></i> <span data-t="nav_login">Kirish</span></a>
+            <a class="btn btn-login" href="register.html"><i class="fas fa-user-plus"></i> <span data-t="nav_register">Ro'yxatdan o'tish</span></a>
+          </li>
+          <li class="nav-item user-menu" id="userNav" style="display: none;">
+            <a class="nav-link" href="add-book.html" id="addBookLink"><i class="fas fa-plus-circle"></i> <span data-t="nav_add_book">Kitob qo'shish</span></a>
+            <a class="nav-link" href="admin.html" id="adminLink" style="display:none;"><i class="fas fa-cog"></i> <span data-t="nav_admin">Admin</span></a>
+            <div class="dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                <div class="user-avatar" id="userAvatarNav">A</div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><span class="dropdown-item-text fw-bold" id="userDisplayName">User</span></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user me-2"></i> <span data-t="nav_profile">Profil</span></a></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i> <span data-t="nav_logout">Chiqish</span></a></li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-pattern"></div>
+    <div class="container position-relative" style="z-index: 2;">
+      <div class="row align-items-center">
+        <div class="col-lg-7">
+          <h1 data-t="hero_title">Kitoblar haqida <span>fikrlaringizni</span> ulashing</h1>
+          <p data-t="hero_desc">O'qigan kitoblaringiz haqida fikr-mulohazalaringizni bildiring, boshqa kitobxonlarga tavsiyalar bering va eng yaxshi kitoblarni kashf eting.</p>
+          <div class="d-flex gap-3">
+            <a href="books.html" class="btn btn-hero"><span data-t="hero_btn">📚 Kitoblarni ko'rish</span></a>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <div class="number" id="statBooks">📚 51</div>
+              <div class="label" data-t="stat_books">Kitoblar</div>
+            </div>
+            <div class="hero-stat">
+              <div class="number" id="statUsers">🏢 3</div>
+              <div class="label" data-t="stat_users">Kutubxonalar</div>
+            </div>
+            <div class="hero-stat">
+              <div class="number" id="statReviews">💬 0</div>
+              <div class="label" data-t="stat_reviews">Sharhlar</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="search-section">
+        <div class="row g-3 align-items-center">
+          <div class="col-12">
+            <div class="input-group">
+              <span class="input-group-text" style="border-radius: 10px 0 0 10px; background: white; border: 2px solid #e0e0e0; border-right: none;"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" id="homeSearch" data-t-placeholder="search_placeholder" placeholder="🔍 Kitob nomi, muallif yoki janrni qidiring..." style="padding: 14px 15px; border: 2px solid #e0e0e0; border-left: none;" onkeyup="if(event.key==='Enter')goToSearch()">
+              <button class="btn" onclick="goToSearch()" style="background: #e67e22; color: white; border: 2px solid #e67e22; border-radius: 0 10px 10px 0; padding: 14px 25px; font-weight: 600;"><i class="fas fa-search me-2"></i><span data-t="search_btn">Qidirish</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="section-title" data-t="section_popular">Eng <span>mashhur</span> kitoblar</h2>
+          <p class="section-subtitle" data-t="section_popular_sub">Kitobxonlar tomonidan eng ko'p baholangan kitoblar</p>
+        </div>
+        <a href="books.html" class="btn btn-outline-custom"><span data-t="view_all">Barchasini ko'rish</span> <i class="fas fa-arrow-right ms-1"></i></a>
+      </div>
+      <div class="row" id="homeBooks"></div>
+    </div>
+  </section>
+
+  <section class="section" style="background: linear-gradient(135deg, #f8f9fa 0%, #fff3e0 100%);">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="section-title"><i class="fas fa-trophy text-warning me-2"></i><span data-t="section_top_rated">Eng yuqori <span>baholangan</span></span></h2>
+          <p class="section-subtitle" data-t="section_top_rated_sub">Eng ko'p yulduz olgan kitoblar</p>
+        </div>
+      </div>
+      <div class="row" id="topRatedBooks"></div>
+    </div>
+  </section>
+
+  <section class="section" style="background: white;">
+    <div class="container">
+      <div class="text-center mb-4">
+        <h2 class="section-title" data-t="section_categories">Kategoriyalar <span>bo'yicha</span></h2>
+        <p class="section-subtitle" data-t="section_categories_sub">Qiziqishingizga mos kitoblarni toping</p>
+      </div>
+      <div class="row" id="homeCategories"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="text-center mb-4">
+        <h2 class="section-title" data-t="section_reviews">So'nggi <span>sharhlar</span></h2>
+        <p class="section-subtitle" data-t="section_reviews_sub">Kitobxonlarning eng yangi fikrlari</p>
+      </div>
+      <div class="row" id="homeReviews"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4 mb-4">
+          <h5><i class="fas fa-book-open me-2"></i>Kitobxon</h5>
+          <p style="color: rgba(255,255,255,0.7);" data-t="footer_desc">Kitobxonlarning badiiy va ilmiy-ommabop adabiyotlar bo'yicha xulosalarini yig'ish axborot tizimi.</p>
+        </div>
+        <div class="col-lg-2 col-md-4 mb-4">
+          <h5 data-t="footer_pages">Sahifalar</h5>
+          <ul>
+            <li><a href="index.html" data-t="nav_home">Bosh sahifa</a></li>
+            <li><a href="books.html" data-t="nav_books">Kitoblar</a></li>
+            <li><a href="categories.html" data-t="nav_categories">Kategoriyalar</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-4 mb-4">
+          <h5 data-t="footer_users">Foydalanuvchi</h5>
+          <ul>
+            <li><a href="login.html" data-t="nav_login">Kirish</a></li>
+            <li><a href="register.html" data-t="nav_register">Ro'yxatdan o'tish</a></li>
+            <li><a href="profile.html" data-t="nav_profile">Profil</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-4 mb-4">
+          <h5 data-t="footer_contact">Bog'lanish</h5>
+          <ul>
+            <li><a href="#"><i class="fab fa-telegram me-2"></i>Telegram</a></li>
+            <li><a href="#"><i class="fab fa-instagram me-2"></i>Instagram</a></li>
+            <li><a href="#"><i class="fas fa-envelope me-2"></i>Email</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 Kitobxon. <span data-t="footer_right">Barcha huquqlar himoyalangan.</span> Diplom loyihasi.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    try { initApp(); } catch(e) { console.error('initApp:', e); }
+    applyTranslations();
+
+    document.getElementById('statBooks').textContent = getApprovedBooks().length;
+    document.getElementById('statUsers').textContent = appState.users.length;
+    document.getElementById('statReviews').textContent = appState.reviews.length;
+
+    function goToSearch() {
+      const q = document.getElementById('homeSearch').value.trim();
+      window.location.href = 'books.html' + (q ? '?q=' + encodeURIComponent(q) : '');
+    }
+
+    document.getElementById('homeSearch').addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') goToSearch();
+    });
+
+    const topBooks = getApprovedBooks()
+      .sort((a, b) => parseFloat(getBookRating(b.id).avg) - parseFloat(getBookRating(a.id).avg))
+      .slice(0, 8);
+    document.getElementById('homeBooks').innerHTML = topBooks.map(b => renderBookCard(b)).join('');
+
+    const topRated = getApprovedBooks()
+      .filter(b => parseFloat(getBookRating(b.id).avg) > 0)
+      .sort((a, b) => parseFloat(getBookRating(b.id).avg) - parseFloat(getBookRating(a.id).avg))
+      .slice(0, 4);
+    document.getElementById('topRatedBooks').innerHTML = topRated.length > 0
+      ? topRated.map(b => {
+          const r = getBookRating(b.id);
+          return `
+          <div class="col-lg-3 col-md-6 mb-4">
+            <div class="book-card" style="border: 2px solid #f39c12; position: relative;">
+              <div style="position: absolute; top: -12px; right: 10px; background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; z-index: 5;">
+                <i class="fas fa-trophy me-1"></i>${r.avg} <i class="fas fa-star"></i>
+              </div>
+              <div class="book-img">
+                <a href="book-detail.html?id=${b.id}">
+                  <img src="${b.image}" alt="${b.title}" onerror="this.src='https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob'">
+                </a>
+                <div class="book-overlay">
+                  <a href="book-detail.html?id=${b.id}" class="btn"><i class="fas fa-eye me-1"></i> <span data-t="see_detail">Batafsil</span></a>
+                </div>
+              </div>
+              <div class="book-info">
+                <a href="book-detail.html?id=${b.id}"><h6 class="book-title">${b.title}</h6></a>
+                <p class="book-author"><i class="fas fa-user me-1"></i>${getAuthor(b.author_id).fullname}</p>
+                <div class="book-rating">
+                  <span class="stars">${getStarsHTML(parseFloat(r.avg))}</span>
+                  <span class="rating-num">${r.avg}</span>
+                  <span class="count">(${r.count})</span>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }).join('')
+      : `<div class="col-12 text-center text-muted"><p>${t('top_rated_no')}</p></div>`;
+
+    function renderHomeCategories() {
+      document.getElementById('homeCategories').innerHTML = CATEGORIES.map(c => {
+        const catName = t('cat_' + c.id);
+        const catCount = appState.books.filter(b => b.category_id === c.id && b.status === 'approved').length;
+        return `
+      <div class="col-lg-3 col-md-4 col-6 mb-4">
+        <a href="books.html?category=${c.id}">
+          <div class="category-card">
+            <div class="cat-icon" style="background: linear-gradient(135deg, ${c.color}, ${c.color}dd);">
+              <i class="fas ${c.icon}"></i>
+            </div>
+            <h6>${catName}</h6>
+            <p>${catCount} ${t('books_count')}</p>
+          </div>
+        </a>
+      </div>
+    `).join('');
+    }
+
+    renderHomeCategories();
+
+    const latestReviews = [...appState.reviews].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 4);
+    document.getElementById('homeReviews').innerHTML = latestReviews.map(r => {
+      const user = appState.users.find(u => u.id === r.user_id) || { fullname: "Noma'lum" };
+      const book = appState.books.find(b => b.id === r.book_id) || { title: "Noma'lum kitob" };
+      return `
+        <div class="col-lg-3 col-md-6 mb-4">
+          <a href="book-detail.html?id=${book.id}">
+            <div class="review-card" style="height: 100%;">
+              <div class="review-header">
+                <div class="review-avatar">${getInitials(user.fullname)}</div>
+                <div class="review-meta">
+                  <h6>${user.fullname}</h6>
+                  <small class="text-muted">${formatDate(r.created_at)}</small>
+                </div>
+              </div>
+              <div class="review-stars mb-2">${getStarsHTML(r.stars)}</div>
+              <p class="mb-1" style="font-size: 0.9rem;"><strong>${book.title}</strong></p>
+              <p class="review-text" style="font-size: 0.85rem;">${r.comment.substring(0, 80)}...</p>
+            </div>
+          </a>
+        </div>`;
+    }).join('');
+  </script>
+</body>
+</html>

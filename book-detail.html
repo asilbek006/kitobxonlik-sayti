@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitob tafsilotlari - Kitobxon</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">📚 Kitobxon</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+        <i class="fas fa-bars" style="color: white;"></i>
+      </button>
+      <div class="collapse navbar-collapse" id="navContent">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html" data-t="nav_home"><i class="fas fa-home"></i> Bosh sahifa</a></li>
+          <li class="nav-item"><a class="nav-link" href="books.html" data-t="nav_books">📚 Kitoblar</a></li>
+          <li class="nav-item"><a class="nav-link" href="categories.html" data-t="nav_categories">🗂 Kategoriyalar</a></li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item"><div class="lang-switcher"><button class="lang-btn active" data-lang="uz" onclick="switchLang('uz')">🇺🇿 UZ</button><button class="lang-btn" data-lang="ru" onclick="switchLang('ru')">🇷🇺 RU</button><button class="lang-btn" data-lang="en" onclick="switchLang('en')">🇬🇧 EN</button></div></li>
+          <li class="nav-item"><button class="nav-link" onclick="toggleDarkMode()" id="darkModeBtn">🌙 Dark</button></li>
+          <li class="nav-item"><button class="nav-link" onclick="resetData()">🔄 Yangilash</button></li>
+          <li class="nav-item" id="authNav" style="display: flex; gap: 8px;">
+            <a class="btn btn-login" href="login.html"><i class="fas fa-sign-in-alt"></i> <span data-t="nav_login">Kirish</span></a>
+            <a class="btn btn-login" href="register.html"><i class="fas fa-user-plus"></i> <span data-t="nav_register">Ro'yxatdan o'tish</span></a>
+          </li>
+          <li class="nav-item user-menu" id="userNav" style="display: none;">
+            <a class="nav-link" href="add-book.html" id="addBookLink"><i class="fas fa-plus-circle"></i> <span data-t="nav_add_book">Kitob qo'shish</span></a>
+            <a class="nav-link" href="admin.html" id="adminLink" style="display:none;"><i class="fas fa-cog"></i> <span data-t="nav_admin">Admin</span></a>
+            <div class="dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><div class="user-avatar" id="userAvatarNav">A</div></a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><span class="dropdown-item-text fw-bold" id="userDisplayName">User</span></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user me-2"></i> <span data-t="nav_profile">Profil</span></a></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i> <span data-t="nav_logout">Chiqish</span></a></li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <section class="section">
+    <div class="container">
+      <div id="bookHero"></div>
+      <div class="row mt-4">
+        <div class="col-lg-8">
+          <div class="form-card">
+            <h4 data-t="about_book">Kitob haqida</h4>
+            <p id="bookDescription"></p>
+          </div>
+          <div class="form-card mt-4">
+            <h4 data-t="reviews_section">Sharhlar</h4>
+            <div id="reviewForm"></div>
+            <hr>
+            <div id="reviewsSection"></div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div id="bookSidebar"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2024 Kitobxon. <span data-t="footer_right">Barcha huquqlar himoyalangan.</span></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    try { initApp(); } catch(e) { console.error('initApp:', e); }
+    applyTranslations();
+
+    window.detailConfirmDelete = function(cb) { if (confirm(t('confirm_delete'))) cb(); };
+
+    const bookId = parseInt(getUrlParam('id'));
+    const book = appState.books.find(b => b.id === bookId);
+
+    if (!book) {
+      document.getElementById('bookHero').innerHTML = '<div class="empty-state"><i class="fas fa-book-open"></i><h4>Kitob topilmadi</h4></div>';
+    } else {
+      document.title = book.title + ' - Kitobxon';
+      const author = getAuthor(book.author_id);
+      const category = getCategory(book.category_id);
+      const rating = getBookRating(book.id);
+      const isFav = appState.currentUser && appState.favorites.some(f => f.user_id === appState.currentUser.id && f.book_id === book.id);
+      const isAdmin = appState.currentUser && appState.currentUser.role === 'admin';
+      const isOwner = appState.currentUser && appState.books && book.created_by === appState.currentUser.username;
+
+      document.getElementById('bookHero').innerHTML = `
+        <div class="row">
+          <div class="col-md-4">
+            <div style="position: relative;">
+              <img src="${book.image}" alt="${book.title}" style="width:100%; border-radius:12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15);" onerror="this.src='https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob'">
+              ${book.genre ? `<span class="badge bg-primary" style="position:absolute; top:10px; left:10px; font-size:0.85rem;">${book.genre}</span>` : ''}
+              ${(isAdmin || isOwner) ? `
+              <div style="position:absolute; top:10px; right:10px;">
+                <div class="dropdown">
+                  <button class="btn btn-dark btn-sm" style="border-radius:50%; width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6);" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="add-book.html?edit=${book.id}"><i class="fas fa-edit me-2 text-primary"></i> <span data-t="edit_book">Kitobni tahrirlash</span></a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" onclick="detailConfirmDelete(function(){deleteBook(${book.id});window.location.href='books.html';})"><i class="fas fa-trash me-2"></i> <span data-t="delete">O'chirish</span></a></li>
+                  </ul>
+                </div>
+              </div>` : ''}
+            </div>
+          </div>
+          <div class="col-md-8">
+            <h2>${book.title}</h2>
+            <div class="rating-box d-flex align-items-center gap-3">
+              <div class="rating-number">${rating.avg || '0.0'}</div>
+              <div>
+                <div class="stars">${getStarsHTML(parseFloat(rating.avg))}</div>
+                <div class="rating-count">${rating.count} ${t('stat_reviews')}</div>
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-3 flex-wrap">
+              ${book.pdf_url ? `<a href="${book.pdf_url}" target="_blank" class="btn btn-warning"><i class="fas fa-download me-2"></i> <span data-t="download_pdf">Yuklab olish (PDF)</span></a>` : ''}
+              ${book.book_url ? `<a href="${book.book_url}" target="_blank" class="btn btn-outline-light"><i class="fas fa-external-link-alt me-2"></i> <span data-t="read_ziyonet">ZiyoNET da o'qish</span></a>` : ''}
+              ${appState.currentUser ? `<button class="btn ${isFav ? 'btn-danger' : 'btn-outline-light'}" onclick="toggleFavorite(${book.id}, event); forceSave(); location.reload();">
+                <i class="fa${isFav ? 's' : 'r'} fa-heart me-2"></i> ${isFav ? t('remove_fav') : t('add_fav')}
+              </button>` : ''}
+              ${book.isbn ? `<span class="badge bg-light text-dark p-2"><i class="fas fa-barcode me-1"></i> ISBN: ${book.isbn}</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+
+      document.getElementById('bookDescription').textContent = book.description;
+
+      document.getElementById('bookSidebar').innerHTML = `
+        ${book.pdf_url ? `<div class="mb-3"><a href="${book.pdf_url}" target="_blank" class="btn btn-custom w-100"><i class="fas fa-download me-2"></i> ${t('download_pdf')}</a></div>` : ''}
+        ${book.book_url ? `<div class="mb-3"><a href="${book.book_url}" target="_blank" class="btn btn-outline-primary w-100"><i class="fas fa-external-link-alt me-2"></i> ${t('read_ziyonet')}</a></div>` : ''}
+        <hr>
+        <ul style="list-style: none; padding: 0;">
+          <li class="py-2 border-bottom"><strong><i class="fas fa-user me-2 text-primary"></i>${t('author')}:</strong> ${author.fullname}</li>
+          ${book.genre ? `<li class="py-2 border-bottom"><strong><i class="fas fa-bookmark me-2 text-primary"></i>${t('genre')}:</strong> ${book.genre}</li>` : ''}
+          <li class="py-2 border-bottom"><strong><i class="fas fa-folder me-2 text-primary"></i>${t('category')}:</strong> ${t('cat_' + book.category_id) || category.name}</li>
+          <li class="py-2 border-bottom"><strong><i class="fas fa-calendar me-2 text-primary"></i>${t('published_year')}:</strong> ${book.year}</li>
+          <li class="py-2 border-bottom"><strong><i class="fas fa-language me-2 text-primary"></i>${t('language')}:</strong> ${book.language}</li>
+          <li class="py-2 border-bottom"><strong><i class="fas fa-file me-2 text-primary"></i>${t('pages')}:</strong> ${book.pages}</li>
+          ${book.isbn ? `<li class="py-2"><strong><i class="fas fa-barcode me-2 text-primary"></i>ISBN:</strong> ${book.isbn}</li>` : ''}
+        </ul>`;
+
+      // Reviews
+      function renderReviews() {
+        const revs = getBookReviews(book.id);
+        if (revs.length === 0) {
+          document.getElementById('reviewsSection').innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-comments" style="font-size: 2rem; color: #ccc;"></i>
+              <p>${t('no_reviews_yet')}</p>
+              <p class="text-muted" style="font-size: 0.85rem;">${t('be_first_review')}</p>
+            </div>`;
+          return;
+        }
+        document.getElementById('reviewsSection').innerHTML = revs.map(r => {
+          const user = appState.users.find(u => u.id === r.user_id) || { fullname: "Noma'lum", id: 0 };
+          const isOwner = appState.currentUser && r.user_id === appState.currentUser.id;
+          const isAdmin2 = appState.currentUser && appState.currentUser.role === 'admin';
+          return `
+            <div class="review-card mb-3">
+              <div class="review-header">
+                <div class="review-avatar">${getInitials(user.fullname)}</div>
+                <div class="review-meta">
+                  <h6>${user.fullname}</h6>
+                  <small class="text-muted">${formatDate(r.created_at)}</small>
+                </div>
+                <div class="ms-auto">
+                  <div class="review-stars">${getStarsHTML(r.stars)}</div>
+                </div>
+              </div>
+              <p class="review-text mt-2">${r.comment}</p>
+              ${(isOwner || isAdmin2) ? `<button class="btn btn-sm btn-danger-custom" onclick="detailConfirmDelete(function(){deleteReview(${r.id});forceSave();location.reload();})"><i class="fas fa-trash"></i></button>` : ''}
+            </div>`;
+        }).join('');
+      }
+
+      if (appState.currentUser) {
+        const existingReview = appState.reviews.find(r => r.user_id === appState.currentUser.id && r.book_id === book.id);
+        document.getElementById('reviewForm').innerHTML = `
+          <div class="mb-3">
+            <label class="form-label"><strong>${t('write_review')}</strong></label>
+            <textarea class="form-control" id="reviewText" rows="3" placeholder="${t('write_review')}...">${existingReview ? existingReview.comment : ''}</textarea>
+          </div>
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <label class="form-label mb-0"><strong>${t('rating')}:</strong></label>
+            <div id="starRating" class="d-flex gap-1">
+              ${[1,2,3,4,5].map(s => `<i class="fas fa-star star-btn" style="cursor:pointer; font-size:1.3rem; color:${existingReview && s <= existingReview.stars ? '#f39c12' : '#ddd'};" onclick="setRating(${s})" data-star="${s}"></i>`).join('')}
+            </div>
+            <span id="ratingValue" class="text-muted">${existingReview ? existingReview.stars : 0}</span>
+          </div>
+          <button class="btn btn-custom" onclick="submitReview()"><i class="fas fa-paper-plane me-2"></i> ${existingReview ? t('review_updated') : t('send')}</button>`;
+
+        let selectedRating = existingReview ? existingReview.stars : 0;
+        window.setRating = function(star) {
+          selectedRating = star;
+          document.getElementById('ratingValue').textContent = star;
+          document.querySelectorAll('#starRating .star-btn').forEach(s => {
+            s.style.color = parseInt(s.dataset.star) <= star ? '#f39c12' : '#ddd';
+          });
+        };
+        window.submitReview = function() {
+          const comment = document.getElementById('reviewText').value.trim();
+          if (!comment || !selectedRating) {
+            showToast(t('all_fields'), 'error');
+            return;
+          }
+          addReview(book.id, comment, selectedRating);
+          try {
+            localStorage.setItem('kitobxonApp', JSON.stringify(appState));
+            localStorage.setItem('kitobxonDataVersion', '6');
+          } catch(e) {}
+          showToast(t('saved'), 'success');
+          setTimeout(function(){ location.reload(); }, 300);
+        };
+      } else {
+        document.getElementById('reviewForm').innerHTML = `
+          <div class="text-center py-3">
+            <p class="text-muted mb-2">${t('login_required')}</p>
+            <a href="login.html" class="btn btn-custom btn-sm"><i class="fas fa-sign-in-alt me-1"></i> ${t('login_btn')}</a>
+          </div>`;
+      }
+
+      renderReviews();
+    }
+  </script>
+</body>
+</html>
