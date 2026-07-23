@@ -204,7 +204,7 @@ const BOOKS = [
 ];
 
 const USERS = [
-  { id: 1, fullname: "Asilbek", username: "asilbek", email: "dasilbek461@gmail.com", password: "admin123", role: "admin", avatar: null },
+  { id: 1, fullname: "Afruza", username: "afruza", email: "afruza@gmail.com", password: "admin123", role: "admin", avatar: null },
   { id: 2, fullname: "Aziz Karimov", username: "aziz", email: "aziz@gmail.com", password: "123456", role: "user", avatar: null },
   { id: 3, fullname: "Sardor Rakhimov", username: "sardor", email: "sardor@gmail.com", password: "123456", role: "user", avatar: null }
 ];

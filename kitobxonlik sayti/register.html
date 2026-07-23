@@ -2,11 +2,18 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ro'yxatdan o'tish - Kitobxon</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
+  <style>
+    .toggle-pass{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;z-index:5;background:none;border:none;padding:0}
+    .toggle-pass:hover{color:var(--primary,#4361ee)}
+  </style>
 </head>
 <body>
   <div class="auth-page">
@@ -18,135 +25,137 @@
       </div>
       <h2>Ro'yxatdan o'tish</h2>
       <p class="auth-subtitle">Yangi hisob yarating va kitobxonlar jamoasiga qo'shiling</p>
-
       <div id="msg" class="alert" style="display: none;"></div>
-
       <div class="mb-3">
         <label class="form-label">To'liq ism</label>
         <div class="input-group">
           <span class="input-group-text"><i class="fas fa-user"></i></span>
-          <input type="text" class="form-control" id="regFullname" placeholder="Ismingizni kiriting" autocomplete="name">
+          <input type="text" class="form-control" id="regFullname" placeholder="Ismingizni kiriting">
         </div>
       </div>
       <div class="mb-3">
         <label class="form-label">Email</label>
         <div class="input-group">
           <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-          <input type="email" class="form-control" id="regEmail" placeholder="email@misol.uz" autocomplete="email">
+          <input type="email" class="form-control" id="regEmail" placeholder="email@misol.uz">
         </div>
       </div>
       <div class="mb-3">
         <label class="form-label">Parol</label>
         <div class="input-group">
           <span class="input-group-text"><i class="fas fa-lock"></i></span>
-          <input type="password" class="form-control" id="regPassword" placeholder="Kamida 6 ta belgi" autocomplete="new-password">
+          <input type="password" class="form-control" id="regPassword" placeholder="Kamida 6 ta belgi" style="padding-right:42px">
+          <button type="button" class="toggle-pass" onclick="togglePass('regPassword',this)"><i class="fas fa-eye"></i></button>
         </div>
       </div>
       <div class="mb-3">
         <label class="form-label">Parolni tasdiqlang</label>
         <div class="input-group">
           <span class="input-group-text"><i class="fas fa-lock"></i></span>
-          <input type="password" class="form-control" id="regPasswordConfirm" placeholder="Parolni qaytadan kiriting" autocomplete="new-password">
+          <input type="password" class="form-control" id="regPasswordConfirm" placeholder="Parolni qaytadan kiriting" style="padding-right:42px">
+          <button type="button" class="toggle-pass" onclick="togglePass('regPasswordConfirm',this)"><i class="fas fa-eye"></i></button>
         </div>
       </div>
       <button type="button" class="btn btn-primary mt-2 w-100" onclick="doRegister()">
         <i class="fas fa-user-plus me-2"></i> Ro'yxatdan o'tish
       </button>
       <p class="auth-link mt-3">Hisobingiz bormi? <a href="login.html">Tizimga kiring</a></p>
-      <p class="text-center mt-2"><a href="index.html" style="color: #999; font-size: 0.85rem;">← Bosh sahifaga qaytish</a></p>
+      <p class="text-center mt-2"><a href="index.html" style="color:#999;font-size:0.85rem">← Bosh sahifaga qaytish</a></p>
     </div>
   </div>
-
   <script>
     var DEFAULT_USERS = [
-      { id: 1, fullname: "Asilbek", username: "asilbek", email: "dasilbek461@gmail.com", password: "admin123", role: "admin", avatar: null },
-      { id: 2, fullname: "Aziz Karimov", username: "aziz", email: "aziz@gmail.com", password: "123456", role: "user", avatar: null },
-      { id: 3, fullname: "Sardor Rakhimov", username: "sardor", email: "sardor@gmail.com", password: "123456", role: "user", avatar: null }
+      {id:1,fullname:"Afruza",username:"afruza",email:"afruza@gmail.com",password:"admin123",role:"admin",avatar:null},
+      {id:2,fullname:"Aziz Karimov",username:"aziz",email:"aziz@gmail.com",password:"123456",role:"user",avatar:null},
+      {id:3,fullname:"Sardor Rakhimov",username:"sardor",email:"sardor@gmail.com",password:"123456",role:"user",avatar:null}
     ];
 
-    function showMsg(text, type) {
-      var el = document.getElementById('msg');
-      el.textContent = text;
-      el.className = 'alert alert-' + type;
-      el.style.display = 'block';
+    function togglePass(id,btn){
+      var i=document.getElementById(id),ic=btn.querySelector('i');
+      if(i.type==='password'){i.type='text';ic.classList.replace('fa-eye','fa-eye-slash');}
+      else{i.type='password';ic.classList.replace('fa-eye-slash','fa-eye');}
     }
 
-    function doRegister() {
-      var fullname = document.getElementById('regFullname').value.trim();
-      var email = document.getElementById('regEmail').value.trim();
-      var password = document.getElementById('regPassword').value;
-      var confirm = document.getElementById('regPasswordConfirm').value;
+    function showMsg(t,c){
+      var e=document.getElementById('msg');
+      e.innerHTML=t;
+      e.className='alert alert-'+c;
+      e.style.display='block';
+    }
 
-      if (!fullname) { showMsg('Ismni kiriting!', 'danger'); return; }
-      if (!email) { showMsg('Emailni kiriting!', 'danger'); return; }
-      if (!password) { showMsg('Parolni kiriting!', 'danger'); return; }
-      if (password.length < 6) { showMsg('Parol kamida 6 ta belgi!', 'danger'); return; }
-      if (password !== confirm) { showMsg('Parollar mos kelmadi!', 'danger'); return; }
+    function getAllUsers(){
+      var users=DEFAULT_USERS.slice();
+      try{
+        var raw=localStorage.getItem('kitobxonApp');
+        if(raw){
+          var s=JSON.parse(raw);
+          if(s&&s.users&&Array.isArray(s.users)){
+            var map={};
+            for(var i=0;i<s.users.length;i++) map[s.users[i].email]=s.users[i];
+            for(var i=0;i<users.length;i++) map[users[i].email]=users[i];
+            users=[];
+            for(var k in map) users.push(map[k]);
+          }
+        }
+      }catch(e){}
+      return users;
+    }
 
-      var raw = localStorage.getItem('kitobxonApp');
-      var state;
+    function doRegister(){
+      var fullname=document.getElementById('regFullname').value.trim();
+      var email=document.getElementById('regEmail').value.trim().toLowerCase();
+      var pw=document.getElementById('regPassword').value;
+      var pw2=document.getElementById('regPasswordConfirm').value;
 
-      try {
-        state = raw ? JSON.parse(raw) : null;
-      } catch (e) {
-        state = null;
-      }
+      if(!fullname){showMsg('Ismni kiriting!','danger');return;}
+      if(!email){showMsg('Emailni kiriting!','danger');return;}
+      if(!pw){showMsg('Parolni kiriting!','danger');return;}
+      if(pw.length<6){showMsg('Parol kamida 6 ta belgi!','danger');return;}
+      if(pw!==pw2){showMsg('Parollar mos kelmadi!','danger');return;}
 
-      if (!state || !state.users || !Array.isArray(state.users)) {
-        state = {
-          currentUser: null,
-          books: [],
-          reviews: [],
-          ratings: [],
-          users: DEFAULT_USERS.slice(),
-          favorites: [],
-          nextBookId: 51,
-          nextReviewId: 1,
-          nextUserId: DEFAULT_USERS.length + 1
-        };
-      }
-
-      for (var i = 0; i < state.users.length; i++) {
-        if (state.users[i].email === email) {
-          showMsg('Bu email allaqachon ro\'yxatdan o\'tgan! Tizimga kiring.', 'danger');
+      var all=getAllUsers();
+      for(var i=0;i<all.length;i++){
+        if(all[i].email===email){
+          showMsg('Bu email allaqachon ro\'yxatdan o\'tgan! <a href="login.html" style="color:#fff;text-decoration:underline;font-weight:700">Tizimga kiring →</a>','danger');
           return;
         }
       }
 
-      var newUser = {
-        id: state.nextUserId ? state.nextUserId++ : state.users.length + 1,
-        fullname: fullname,
-        username: fullname.toLowerCase().replace(/[^a-z0-9]/g, ''),
-        email: email,
-        password: password,
-        role: 'user',
-        avatar: null
+      var maxId=0;
+      for(var i=0;i<all.length;i++){if(all[i].id>maxId)maxId=all[i].id;}
+
+      var newUser={
+        id:maxId+1,
+        fullname:fullname,
+        username:fullname.toLowerCase().replace(/[^a-z0-9]/g,''),
+        email:email,
+        password:pw,
+        role:'user',
+        avatar:null
       };
 
-      state.users.push(newUser);
-      state.currentUser = newUser;
+      try{
+        localStorage.setItem('kitobxonUser',JSON.stringify(newUser));
 
-      try {
-        localStorage.setItem('kitobxonApp', JSON.stringify(state));
-        localStorage.setItem('kitobxonUser', JSON.stringify(newUser));
-        localStorage.setItem('kitobxonDataVersion', '5');
-      } catch (e) {
-        showMsg('Saqlashda xatolik! Brauzer xotirasi to\'lgan bo\'lishi mumkin.', 'danger');
-        return;
+        var appRaw=localStorage.getItem('kitobxonApp');
+        var app=null;
+        try{app=appRaw?JSON.parse(appRaw):null;}catch(e){}
+        if(app){
+          if(!app.users)app.users=[];
+          var exists=false;
+          for(var j=0;j<app.users.length;j++){if(app.users[j]&&app.users[j].email===email){exists=true;break;}}
+          if(!exists)app.users.push(newUser);
+          localStorage.setItem('kitobxonApp',JSON.stringify(app));
+        }
+      }catch(e){
+        showMsg('Saqlashda xatolik!','danger');return;
       }
 
-      var verify = localStorage.getItem('kitobxonUser');
-      if (verify) {
-        showMsg('Muvaffaqiyatli ro\'yxatdan o\'tildi! Yo\'naltirilmoqda...', 'success');
-        setTimeout(function() { window.location.href = 'index.html'; }, 500);
-      } else {
-        showMsg('Saqlash xatolik! Qaytadan urinib ko\'ring.', 'danger');
-      }
+      showMsg('Muvaffaqiyatli ro\'yxatdan o\'tildi! Yo\'naltirilmoqda...','success');
+      setTimeout(function(){window.location.href='index.html';},600);
     }
 
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') doRegister();
-    });
+    document.addEventListener('keydown',function(e){if(e.key==='Enter')doRegister();});
   </script>
 </body>
 </html>

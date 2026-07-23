@@ -2,6 +2,9 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel - Kitobxon</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -32,6 +35,7 @@
 
     <!-- MAIN CONTENT -->
     <main class="admin-content">
+      <button class="btn btn-primary d-lg-none position-fixed" style="top:15px;left:15px;z-index:9998;border-radius:10px;padding:10px 14px;" onclick="document.querySelector('.admin-sidebar').classList.toggle('show')"><i class="fas fa-bars"></i></button>
       <!-- DASHBOARD -->
       <div id="sec-dashboard">
         <div class="admin-topbar">
@@ -186,7 +190,10 @@
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
   <script>
-    initApp();
+    try { initApp(); } catch(e) { console.error('initApp:', e); }
+
+    window.adminConfirmDelete = function(cb) { if (confirm(t('confirm_delete'))) cb(); };
+    window.adminConfirmReset = function() { if (confirm(t('reset_confirm'))) resetData(); };
 
     if (!appState.currentUser || appState.currentUser.role !== 'admin') {
       window.location.href = 'login.html';
@@ -259,7 +266,7 @@
             <td>${t('cat_' + b.category_id) || getCategory(b.category_id).name}</td>
             <td><span class="badge ${b.status === 'approved' ? 'bg-success' : 'bg-warning text-dark'}">${b.status === 'approved' ? t('approved') : t('pending')}</span></td>
             <td>
-              <button class="btn btn-sm btn-danger-custom" onclick="if(confirm('${t('confirm_delete')}')){deleteBook(${b.id}); renderBooksTable();}"><i class="fas fa-trash"></i></button>
+              <button class="btn btn-sm btn-danger-custom" onclick="adminConfirmDelete(function(){deleteBook(${b.id});renderBooksTable();})"><i class="fas fa-trash"></i></button>
             </td>
           </tr>`).join('');
       }
@@ -281,7 +288,7 @@
             <td>${formatDate(b.created_at)}</td>
             <td>
               <button class="btn btn-sm btn-success-custom me-1" onclick="approveBook(${b.id}); renderPendingTable();"><i class="fas fa-check"></i> ${t('approve')}</button>
-              <button class="btn btn-sm btn-danger-custom" onclick="if(confirm('${t('confirm_delete')}')){deleteBook(${b.id}); renderPendingTable();}"><i class="fas fa-trash"></i></button>
+              <button class="btn btn-sm btn-danger-custom" onclick="adminConfirmDelete(function(){deleteBook(${b.id});renderPendingTable();})"><i class="fas fa-trash"></i></button>
             </td>
           </tr>`).join('');
       }
@@ -295,7 +302,7 @@
             <td>${u.email}</td>
             <td><span class="badge-role ${u.role}">${u.role === 'admin' ? 'Admin' : 'Foydalanuvchi'}</span></td>
             <td>
-              ${u.id !== appState.currentUser.id ? `<button class="btn btn-sm btn-danger-custom" onclick="if(confirm('${t('confirm_delete')}')){deleteUser(${u.id}); renderUsersTable();}"><i class="fas fa-trash"></i></button>` : '<span class="text-muted" style="font-size:0.8rem;">Siz</span>'}
+              ${u.id !== appState.currentUser.id ? `<button class="btn btn-sm btn-danger-custom" onclick="adminConfirmDelete(function(){deleteUser(${u.id});renderUsersTable();})"><i class="fas fa-trash"></i></button>` : '<span class="text-muted" style="font-size:0.8rem;">Siz</span>'}
             </td>
           </tr>`).join('');
       }
@@ -318,7 +325,7 @@
               </div>
               <p class="mt-2 mb-1"><strong><a href="book-detail.html?id=${book.id}">${book.title}</a></strong></p>
               <p class="review-text">${r.comment}</p>
-              <button class="btn btn-sm btn-danger-custom" onclick="if(confirm('${t('confirm_delete')}')){deleteReview(${r.id}); renderReviewsList();}"><i class="fas fa-trash me-1"></i> ${t('delete')}</button>
+              <button class="btn btn-sm btn-danger-custom" onclick="adminConfirmDelete(function(){deleteReview(${r.id});renderReviewsList();})"><i class="fas fa-trash me-1"></i> ${t('delete')}</button>
             </div>`;
         }).join('');
       }
