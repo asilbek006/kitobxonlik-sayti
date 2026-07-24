@@ -12,15 +12,51 @@ let appState = {
 };
 
 // ===== INIT =====
+// Eski versiyadagi localStorage'ni yangi seed kitoblarga o'tkazadi.
+// Foydalanuvchi qo'shgan kitoblar, sharhlar, baholar, sevimlilar va
+// foydalanuvchilar SAQLAB QOLINADI — faqat admin seed kitoblari yangilanadi.
+function migrateState(state) {
+  var seedIds = {};
+  for (var i = 0; i < BOOKS.length; i++) seedIds[BOOKS[i].id] = true;
+
+  var userBooks = (state.books || []).filter(function(b) {
+    return b && b.id && b.title && b.created_by && b.created_by !== 'admin';
+  });
+
+  var maxId = BOOKS.length;
+  userBooks.forEach(function(b) { if (b.id > maxId) maxId = b.id; });
+
+  // Yangi seed id'lari bilan to'qnashgan foydalanuvchi kitoblariga yangi id
+  // beriladi va ularga tegishli sharh/baho/sevimlilar ham ko'chiriladi
+  userBooks.forEach(function(b) {
+    if (seedIds[b.id]) {
+      var oldId = b.id;
+      var newId = ++maxId;
+      ['reviews', 'ratings', 'favorites'].forEach(function(key) {
+        (state[key] || []).forEach(function(item) {
+          if (item && item.book_id === oldId) item.book_id = newId;
+        });
+      });
+      b.id = newId;
+    }
+  });
+
+  state.books = BOOKS.concat(userBooks);
+  state.nextBookId = maxId + 1;
+}
+
 function initApp() {
-  const DATA_VERSION = 6;
+  const DATA_VERSION = 7;
   const saved = localStorage.getItem('kitobxonApp');
   const savedVersion = parseInt(localStorage.getItem('kitobxonDataVersion') || '0');
 
   try {
-    if (saved && savedVersion === DATA_VERSION) {
+    if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.users) {
+        if (savedVersion !== DATA_VERSION) {
+          migrateState(parsed);
+        }
         appState = parsed;
         if (!appState.users) appState.users = [];
         for (var di = 0; di < USERS.length; di++) {
@@ -40,11 +76,12 @@ function initApp() {
         if (!appState.nextUserId) appState.nextUserId = appState.users.length + 1;
         if (!appState.nextReviewId) appState.nextReviewId = 1;
         localStorage.setItem('kitobxonApp', JSON.stringify(appState));
+        localStorage.setItem('kitobxonDataVersion', DATA_VERSION);
       } else {
         throw new Error('Invalid data');
       }
     } else {
-      throw new Error('Version mismatch or no data');
+      throw new Error('No data');
     }
   } catch (e) {
     appState.books = [...BOOKS];
@@ -104,7 +141,7 @@ function saveState() {
   _saveTimeout = setTimeout(() => {
     try {
       localStorage.setItem('kitobxonApp', JSON.stringify(appState));
-      localStorage.setItem('kitobxonDataVersion', '6');
+      localStorage.setItem('kitobxonDataVersion', '7');
     } catch (e) {
       console.error('localStorage saqlashda xatolik:', e);
       showToast("Xotira to'ldi! Ba'zi ma'lumotlar saqlanmadi.", 'error');
@@ -116,7 +153,7 @@ function forceSave() {
   if (_saveTimeout) clearTimeout(_saveTimeout);
   try {
     localStorage.setItem('kitobxonApp', JSON.stringify(appState));
-    localStorage.setItem('kitobxonDataVersion', '6');
+    localStorage.setItem('kitobxonDataVersion', '7');
   } catch (e) {
     console.error('localStorage saqlashda xatolik:', e);
   }
@@ -1025,8 +1062,10 @@ function getUrlParam(name) {
 }
 
 function formatDate(dateStr) {
+  const months = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
   const d = new Date(dateStr);
-  return d.toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
+  if (isNaN(d.getTime())) return dateStr || '';
+  return d.getDate() + '-' + months[d.getMonth()] + ', ' + d.getFullYear();
 }
 
 function getInitials(name) {

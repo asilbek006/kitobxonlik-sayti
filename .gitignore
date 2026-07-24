@@ -6,3 +6,6 @@ node_modules/
 *.swo
 *~
 .env
+
+# images/covers/ bilan aynan bir xil nusxa (saytda covers ishlatiladi)
+images/kitob_muqovalari/
