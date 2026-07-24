@@ -108,7 +108,7 @@
         <div class="row">
           <div class="col-md-4">
             <div style="position: relative;">
-              <img src="${book.image}" alt="${book.title}" style="width:100%; border-radius:12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15);" onerror="this.src='https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob'">
+              <img class="img-loading" src="${book.image}" alt="${book.title}" style="width:100%; border-radius:12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); background: linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%); background-size: 200% 100%; min-height: 300px;" onload="this.classList.remove('img-loading')" onerror="this.classList.remove('img-loading');this.src='https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob'">
               ${book.genre ? `<span class="badge bg-primary" style="position:absolute; top:10px; left:10px; font-size:0.85rem;">${book.genre}</span>` : ''}
               ${(isAdmin || isOwner) ? `
               <div style="position:absolute; top:10px; right:10px;">

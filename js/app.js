@@ -233,7 +233,7 @@ function renderBookCard(book) {
       <div class="book-card">
         <div class="book-img">
           <a href="book-detail.html?id=${book.id}">
-            <img src="${book.image}" alt="${book.title}" onerror="this.src='https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob'">
+            <img class="img-loading" src="${book.image}" alt="${book.title}" onload="this.classList.remove('img-loading')" onerror="this.classList.remove('img-loading');this.src='https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob'">
           </a>
           <span class="book-badge" style="background: ${getCategory(book.category_id).color};">${t('cat_' + book.category_id) || getCategory(book.category_id).name}</span>
           ${book.genre ? `<span class="book-genre-tag">${book.genre}</span>` : ''}
