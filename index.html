@@ -194,108 +194,75 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="js/data.js?v=7"></script>
-  <script src="js/app.js?v=7"></script>
+  <script src="js/data.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
   <script>
     try { initApp(); } catch(e) { console.error('initApp:', e); }
-    applyTranslations();
+    try { applyTranslations(); } catch(e) {}
 
-    document.getElementById('statBooks').textContent = getApprovedBooks().length;
-    document.getElementById('statUsers').textContent = appState.users.length;
-    document.getElementById('statReviews').textContent = appState.reviews.length;
+    try {
+      document.getElementById('statBooks').textContent = getApprovedBooks().length;
+      document.getElementById('statUsers').textContent = appState.users.length;
+      document.getElementById('statReviews').textContent = appState.reviews.length;
+    } catch(e) { console.error('stats:', e); }
 
     function goToSearch() {
-      const q = document.getElementById('homeSearch').value.trim();
+      var q = document.getElementById('homeSearch').value.trim();
       window.location.href = 'books.html' + (q ? '?q=' + encodeURIComponent(q) : '');
     }
 
-    document.getElementById('homeSearch').addEventListener('keyup', function(e) {
-      if (e.key === 'Enter') goToSearch();
-    });
+    try {
+      document.getElementById('homeSearch').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') goToSearch();
+      });
+    } catch(e) {}
 
-    const topBooks = getApprovedBooks()
-      .sort((a, b) => parseFloat(getBookRating(b.id).avg) - parseFloat(getBookRating(a.id).avg))
-      .slice(0, 8);
-    document.getElementById('homeBooks').innerHTML = topBooks.map(b => renderBookCard(b)).join('');
+    try {
+      var topBooks = getApprovedBooks()
+        .sort(function(a, b) { return parseFloat(getBookRating(b.id).avg) - parseFloat(getBookRating(a.id).avg); })
+        .slice(0, 8);
+      document.getElementById('homeBooks').innerHTML = topBooks.map(function(b) { return renderBookCard(b); }).join('');
+    } catch(e) { console.error('topBooks:', e); }
 
-    const topRated = getApprovedBooks()
-      .filter(b => parseFloat(getBookRating(b.id).avg) > 0)
-      .sort((a, b) => parseFloat(getBookRating(b.id).avg) - parseFloat(getBookRating(a.id).avg))
-      .slice(0, 4);
-    document.getElementById('topRatedBooks').innerHTML = topRated.length > 0
-      ? topRated.map(b => {
-          const r = getBookRating(b.id);
-          return `
-          <div class="col-lg-3 col-md-6 mb-4">
-            <div class="book-card" style="border: 2px solid #f39c12; position: relative;">
-              <div style="position: absolute; top: -12px; right: 10px; background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; z-index: 5;">
-                <i class="fas fa-trophy me-1"></i>${r.avg} <i class="fas fa-star"></i>
-              </div>
-              <div class="book-img">
-                <a href="book-detail.html?id=${b.id}">
-                  <img src="${b.image}" alt="${b.title}" onerror="this.src='https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob'">
-                </a>
-                <div class="book-overlay">
-                  <a href="book-detail.html?id=${b.id}" class="btn"><i class="fas fa-eye me-1"></i> <span data-t="see_detail">Batafsil</span></a>
-                </div>
-              </div>
-              <div class="book-info">
-                <a href="book-detail.html?id=${b.id}"><h6 class="book-title">${b.title}</h6></a>
-                <p class="book-author"><i class="fas fa-user me-1"></i>${getAuthor(b.author_id).fullname}</p>
-                <div class="book-rating">
-                  <span class="stars">${getStarsHTML(parseFloat(r.avg))}</span>
-                  <span class="rating-num">${r.avg}</span>
-                  <span class="count">(${r.count})</span>
-                </div>
-              </div>
-            </div>
-          </div>`;
-        }).join('')
-      : `<div class="col-12 text-center text-muted"><p>${t('top_rated_no')}</p></div>`;
+    try {
+      var topRated = getApprovedBooks()
+        .filter(function(b) { return parseFloat(getBookRating(b.id).avg) > 0; })
+        .sort(function(a, b) { return parseFloat(getBookRating(b.id).avg) - parseFloat(getBookRating(a.id).avg); })
+        .slice(0, 4);
+      document.getElementById('topRatedBooks').innerHTML = topRated.length > 0
+        ? topRated.map(function(b) {
+            var r = getBookRating(b.id);
+            return '<div class="col-lg-3 col-md-6 mb-4"><div class="book-card" style="border: 2px solid #f39c12; position: relative;"><div style="position: absolute; top: -12px; right: 10px; background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; z-index: 5;"><i class="fas fa-trophy me-1"></i>' + r.avg + ' <i class="fas fa-star"></i></div><div class="book-img"><a href="book-detail.html?id=' + b.id + '"><img src="' + b.image + '" alt="' + b.title + '" onerror="this.src=\'https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob\'"></a><div class="book-overlay"><a href="book-detail.html?id=' + b.id + '" class="btn"><i class="fas fa-eye me-1"></i> ' + t('see_detail') + '</a></div></div><div class="book-info"><a href="book-detail.html?id=' + b.id + '"><h6 class="book-title">' + b.title + '</h6></a><p class="book-author"><i class="fas fa-user me-1"></i>' + getAuthor(b.author_id).fullname + '</p><div class="book-rating"><span class="stars">' + getStarsHTML(parseFloat(r.avg)) + '</span><span class="rating-num">' + r.avg + '</span><span class="count">(' + r.count + ')</span></div></div></div></div>';
+          }).join('')
+        : '<div class="col-12 text-center text-muted"><p>' + t('top_rated_no') + '</p></div>';
+    } catch(e) { console.error('topRated:', e); }
 
-    function renderHomeCategories() {
-      document.getElementById('homeCategories').innerHTML = CATEGORIES.map(c => {
-        const catName = t('cat_' + c.id);
-        const catCount = appState.books.filter(b => b.category_id === c.id && b.status === 'approved').length;
-        return `
-      <div class="col-lg-3 col-md-4 col-6 mb-4">
-        <a href="books.html?category=${c.id}">
-          <div class="category-card">
-            <div class="cat-icon" style="background: linear-gradient(135deg, ${c.color}, ${c.color}dd);">
-              <i class="fas ${c.icon}"></i>
-            </div>
-            <h6>${catName}</h6>
-            <p>${catCount} ${t('books_count')}</p>
-          </div>
-        </a>
-      </div>
-    `).join('');
-    }
+    try {
+      function renderHomeCategories() {
+        document.getElementById('homeCategories').innerHTML = CATEGORIES.map(function(c) {
+          var catName = t('cat_' + c.id);
+          var catCount = appState.books.filter(function(b) { return b.category_id === c.id && b.status === 'approved'; }).length;
+          return '<div class="col-lg-3 col-md-4 col-6 mb-4"><a href="books.html?category=' + c.id + '"><div class="category-card"><div class="cat-icon" style="background: linear-gradient(135deg, ' + c.color + ', ' + c.color + 'dd);"><i class="fas ' + c.icon + '"></i></div><h6>' + catName + '</h6><p>' + catCount + ' ' + t('books_count') + '</p></div></a></div>';
+        }).join('');
+      }
+      renderHomeCategories();
+    } catch(e) { console.error('categories:', e); }
 
-    renderHomeCategories();
-
-    const latestReviews = [...appState.reviews].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 4);
-    document.getElementById('homeReviews').innerHTML = latestReviews.map(r => {
-      const user = appState.users.find(u => u.id === r.user_id) || { fullname: "Noma'lum" };
-      const book = appState.books.find(b => b.id === r.book_id) || { title: "Noma'lum kitob" };
-      return `
-        <div class="col-lg-3 col-md-6 mb-4">
-          <a href="book-detail.html?id=${book.id}">
-            <div class="review-card" style="height: 100%;">
-              <div class="review-header">
-                <div class="review-avatar">${getInitials(user.fullname)}</div>
-                <div class="review-meta">
-                  <h6>${user.fullname}</h6>
-                  <small class="text-muted">${formatDate(r.created_at)}</small>
-                </div>
-              </div>
-              <div class="review-stars mb-2">${getStarsHTML(r.stars)}</div>
-              <p class="mb-1" style="font-size: 0.9rem;"><strong>${book.title}</strong></p>
-              <p class="review-text" style="font-size: 0.85rem;">${r.comment.substring(0, 80)}...</p>
-            </div>
-          </a>
-        </div>`;
-    }).join('');
+    try {
+      var latestReviews = [];
+      if (appState.reviews && appState.reviews.length > 0) {
+        latestReviews = appState.reviews.slice().sort(function(a, b) { return new Date(b.created_at) - new Date(a.created_at); }).slice(0, 4);
+      }
+      if (latestReviews.length > 0) {
+        document.getElementById('homeReviews').innerHTML = latestReviews.map(function(r) {
+          var user = appState.users.find(function(u) { return u.id === r.user_id; }) || { fullname: "Noma'lum" };
+          var book = appState.books.find(function(b) { return b.id === r.book_id; }) || { title: "Noma'lum kitob", id: 0 };
+          return '<div class="col-lg-3 col-md-6 mb-4"><a href="book-detail.html?id=' + book.id + '"><div class="review-card" style="height: 100%;"><div class="review-header"><div class="review-avatar">' + getInitials(user.fullname) + '</div><div class="review-meta"><h6>' + user.fullname + '</h6><small class="text-muted">' + formatDate(r.created_at) + '</small></div></div><div class="review-stars mb-2">' + getStarsHTML(r.stars) + '</div><p class="mb-1" style="font-size: 0.9rem;"><strong>' + book.title + '</strong></p><p class="review-text" style="font-size: 0.85rem;">' + (r.comment || '').substring(0, 80) + '...</p></div></a></div>';
+        }).join('');
+      } else {
+        document.getElementById('homeReviews').innerHTML = '<div class="col-12 text-center text-muted py-4"><i class="fas fa-comments" style="font-size:2rem;opacity:0.3;"></i><p class="mt-2">' + t('no_reviews_yet') + '</p></div>';
+      }
+    } catch(e) { console.error('reviews:', e); }
   </script>
 </body>
 </html>
