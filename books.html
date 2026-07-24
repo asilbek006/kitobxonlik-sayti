@@ -104,7 +104,7 @@
   <script src="js/app.js?v=8"></script>
   <script>
     try { initApp(); } catch(e) { console.error('initApp:', e); }
-    applyTranslations();
+    try { applyTranslations(); } catch(e) {}
 
     const filterCat = document.getElementById('filterCategory');
 

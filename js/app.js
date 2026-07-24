@@ -87,6 +87,12 @@ function initApp() {
     }
   } catch (e) {}
 
+  try {
+    if (typeof DIAGNOSTICS !== 'undefined' && DIAGNOSTICS.autoRepair) {
+      DIAGNOSTICS.autoRepair();
+    }
+  } catch(e) {}
+
   updateNavbar();
   applyDarkMode();
   if (typeof applyTranslations === 'function') applyTranslations();
@@ -1239,14 +1245,5 @@ var DIAGNOSTICS = {
   }
 };
 
-// Auto-run diagnostics on every page load (silent)
-(function() {
-  try {
-    var result = DIAGNOSTICS.autoRepair();
-    if (result.fixed > 0) {
-      console.log('[Kitobxon Self-Heal] ' + result.fixed + ' issues auto-fixed:', result.issues);
-    }
-  } catch(e) {
-    console.error('[Kitobxon Self-Heal] Error:', e);
-  }
-})();
+// Auto-run diagnostics only after data is loaded (called from initApp)
+// IIFE removed - was destroying user data by running before initApp()

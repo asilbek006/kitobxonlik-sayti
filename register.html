@@ -124,10 +124,19 @@
       var maxId=0;
       for(var i=0;i<all.length;i++){if(all[i].id>maxId)maxId=all[i].id;}
 
+      var username=fullname.toLowerCase().replace(/[^a-z0-9]/g,'');
+      if(!username) username='user'+maxId;
+      for(var i=0;i<all.length;i++){
+        if(all[i].username===username){
+          username=username+Math.floor(Math.random()*100);
+          break;
+        }
+      }
+
       var newUser={
         id:maxId+1,
         fullname:fullname,
-        username:fullname.toLowerCase().replace(/[^a-z0-9]/g,''),
+        username:username,
         email:email,
         password:pw,
         role:'user',
@@ -145,6 +154,7 @@
           var exists=false;
           for(var j=0;j<app.users.length;j++){if(app.users[j]&&app.users[j].email===email){exists=true;break;}}
           if(!exists)app.users.push(newUser);
+          app.nextUserId=newUser.id+1;
           localStorage.setItem('kitobxonApp',JSON.stringify(app));
         }
       }catch(e){

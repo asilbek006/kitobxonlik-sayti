@@ -27,6 +27,10 @@
         <ul class="navbar-nav">
           <li class="nav-item"><button class="nav-link" onclick="toggleDarkMode()" id="darkModeBtn">🌙 Dark</button></li>
           <li class="nav-item"><button class="nav-link" onclick="resetData()" title="Ma'lumotlarni yangilash">🔄 Yangilash</button></li>
+          <li class="nav-item" id="authNav" style="display: flex; gap: 8px;">
+            <a href="login.html" class="btn btn-outline-light btn-sm" data-t="nav_login">Tizimga kirish</a>
+            <a href="register.html" class="btn btn-custom btn-sm" data-t="nav_register">Ro'yxatdan o'tish</a>
+          </li>
           <li class="nav-item user-menu" id="userNav" style="display: none;">
             <a class="nav-link" href="add-book.html" id="addBookLink"><i class="fas fa-plus-circle"></i> Kitob qo'shish</a>
             <a class="nav-link" href="admin.html" id="adminLink" style="display:none;"><i class="fas fa-cog"></i> Admin</a>
