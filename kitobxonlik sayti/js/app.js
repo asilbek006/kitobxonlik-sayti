@@ -12,15 +12,51 @@ let appState = {
 };
 
 // ===== INIT =====
+// Eski versiyadagi localStorage'ni yangi seed kitoblarga o'tkazadi.
+// Foydalanuvchi qo'shgan kitoblar, sharhlar, baholar, sevimlilar va
+// foydalanuvchilar SAQLAB QOLINADI — faqat admin seed kitoblari yangilanadi.
+function migrateState(state) {
+  var seedIds = {};
+  for (var i = 0; i < BOOKS.length; i++) seedIds[BOOKS[i].id] = true;
+
+  var userBooks = (state.books || []).filter(function(b) {
+    return b && b.id && b.title && b.created_by && b.created_by !== 'admin';
+  });
+
+  var maxId = BOOKS.length;
+  userBooks.forEach(function(b) { if (b.id > maxId) maxId = b.id; });
+
+  // Yangi seed id'lari bilan to'qnashgan foydalanuvchi kitoblariga yangi id
+  // beriladi va ularga tegishli sharh/baho/sevimlilar ham ko'chiriladi
+  userBooks.forEach(function(b) {
+    if (seedIds[b.id]) {
+      var oldId = b.id;
+      var newId = ++maxId;
+      ['reviews', 'ratings', 'favorites'].forEach(function(key) {
+        (state[key] || []).forEach(function(item) {
+          if (item && item.book_id === oldId) item.book_id = newId;
+        });
+      });
+      b.id = newId;
+    }
+  });
+
+  state.books = BOOKS.concat(userBooks);
+  state.nextBookId = maxId + 1;
+}
+
 function initApp() {
-  const DATA_VERSION = 6;
+  const DATA_VERSION = 7;
   const saved = localStorage.getItem('kitobxonApp');
   const savedVersion = parseInt(localStorage.getItem('kitobxonDataVersion') || '0');
 
   try {
-    if (saved && savedVersion === DATA_VERSION) {
+    if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.users) {
+        if (savedVersion !== DATA_VERSION) {
+          migrateState(parsed);
+        }
         appState = parsed;
         if (!appState.users) appState.users = [];
         for (var di = 0; di < USERS.length; di++) {
@@ -40,11 +76,12 @@ function initApp() {
         if (!appState.nextUserId) appState.nextUserId = appState.users.length + 1;
         if (!appState.nextReviewId) appState.nextReviewId = 1;
         localStorage.setItem('kitobxonApp', JSON.stringify(appState));
+        localStorage.setItem('kitobxonDataVersion', DATA_VERSION);
       } else {
         throw new Error('Invalid data');
       }
     } else {
-      throw new Error('Version mismatch or no data');
+      throw new Error('No data');
     }
   } catch (e) {
     appState.books = [...BOOKS];
@@ -82,8 +119,16 @@ function initApp() {
         if (!appState.nextUserId) appState.nextUserId = appState.users.length + 1;
         localStorage.setItem('kitobxonApp', JSON.stringify(appState));
       }
+    } else {
+      appState.currentUser = null;
     }
   } catch (e) {}
+
+  try {
+    if (typeof DIAGNOSTICS !== 'undefined' && DIAGNOSTICS.autoRepair) {
+      DIAGNOSTICS.autoRepair();
+    }
+  } catch(e) {}
 
   updateNavbar();
   applyDarkMode();
@@ -96,7 +141,7 @@ function saveState() {
   _saveTimeout = setTimeout(() => {
     try {
       localStorage.setItem('kitobxonApp', JSON.stringify(appState));
-      localStorage.setItem('kitobxonDataVersion', '6');
+      localStorage.setItem('kitobxonDataVersion', '7');
     } catch (e) {
       console.error('localStorage saqlashda xatolik:', e);
       showToast("Xotira to'ldi! Ba'zi ma'lumotlar saqlanmadi.", 'error');
@@ -108,7 +153,7 @@ function forceSave() {
   if (_saveTimeout) clearTimeout(_saveTimeout);
   try {
     localStorage.setItem('kitobxonApp', JSON.stringify(appState));
-    localStorage.setItem('kitobxonDataVersion', '6');
+    localStorage.setItem('kitobxonDataVersion', '7');
   } catch (e) {
     console.error('localStorage saqlashda xatolik:', e);
   }
@@ -120,6 +165,7 @@ function login(email, password) {
   if (user) {
     appState.currentUser = user;
     localStorage.setItem('kitobxonUser', JSON.stringify(user));
+    forceSave();
     return { success: true, user };
   }
   return { success: false, message: "Email yoki parol noto'g'ri" };
@@ -151,6 +197,7 @@ function register(fullname, username, email, password) {
 function logout() {
   appState.currentUser = null;
   localStorage.removeItem('kitobxonUser');
+  forceSave();
   window.location.href = 'index.html';
 }
 
@@ -223,7 +270,7 @@ function renderBookCard(book) {
       <div class="book-card">
         <div class="book-img">
           <a href="book-detail.html?id=${book.id}">
-            <img src="${book.image}" alt="${book.title}" onerror="this.src='https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob'">
+            <img class="img-loading" src="${book.image}" alt="${book.title}" onload="this.classList.remove('img-loading')" onerror="this.classList.remove('img-loading');this.src='https://placehold.co/400x600/bdc3c7/2c3e50?text=Kitob'">
           </a>
           <span class="book-badge" style="background: ${getCategory(book.category_id).color};">${t('cat_' + book.category_id) || getCategory(book.category_id).name}</span>
           ${book.genre ? `<span class="book-genre-tag">${book.genre}</span>` : ''}
@@ -327,7 +374,6 @@ function addBook(bookData) {
 
 function deleteBook(bookId) {
   appState.books = appState.books.filter(b => b.id !== bookId);
-  appState.reviews = appState.reviews.filter(r => r.book_id !== bookId);
   appState.ratings = appState.ratings.filter(r => r.book_id !== bookId);
   forceSave();
   showToast("Kitob o'chirildi", 'info');
@@ -345,7 +391,6 @@ function approveBook(bookId) {
 // ===== USER MANAGEMENT =====
 function deleteUser(userId) {
   appState.users = appState.users.filter(u => u.id !== userId);
-  appState.reviews = appState.reviews.filter(r => r.user_id !== userId);
   appState.ratings = appState.ratings.filter(r => r.user_id !== userId);
   forceSave();
   showToast("Foydalanuvchi o'chirildi", 'info');
@@ -1017,8 +1062,10 @@ function getUrlParam(name) {
 }
 
 function formatDate(dateStr) {
+  const months = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
   const d = new Date(dateStr);
-  return d.toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
+  if (isNaN(d.getTime())) return dateStr || '';
+  return d.getDate() + '-' + months[d.getMonth()] + ', ' + d.getFullYear();
 }
 
 function getInitials(name) {
@@ -1120,9 +1167,7 @@ var DIAGNOSTICS = {
       var bookExists = appState.books.some(function(bk) { return bk.id === r.book_id; });
       var userExists = appState.users.some(function(usr) { return usr.id === r.user_id; });
       if (!bookExists) {
-        issues.push('review #' + r.id + ' references deleted book → removed');
-        fixed++;
-        continue;
+        issues.push('review #' + r.id + ' references deleted book → kept');
       }
       if (!userExists) {
         issues.push('review #' + r.id + ' references deleted user → kept (anonymous)');
@@ -1239,14 +1284,5 @@ var DIAGNOSTICS = {
   }
 };
 
-// Auto-run diagnostics on every page load (silent)
-(function() {
-  try {
-    var result = DIAGNOSTICS.autoRepair();
-    if (result.fixed > 0) {
-      console.log('[Kitobxon Self-Heal] ' + result.fixed + ' issues auto-fixed:', result.issues);
-    }
-  } catch(e) {
-    console.error('[Kitobxon Self-Heal] Error:', e);
-  }
-})();
+// Auto-run diagnostics only after data is loaded (called from initApp)
+// IIFE removed - was destroying user data by running before initApp()

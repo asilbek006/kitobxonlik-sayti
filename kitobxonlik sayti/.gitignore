@@ -6,3 +6,11 @@ node_modules/
 *.swo
 *~
 .env
+
+# images/covers/ bilan aynan bir xil nusxa (saytda covers ishlatiladi)
+images/kitob_muqovalari/
+
+# Django runtime / foydalanuvchi yuklagan fayllar
+db.sqlite3
+*.sqlite3
+media/
